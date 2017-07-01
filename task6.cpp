@@ -111,7 +111,7 @@ void bfs(const graph& g, vertex v, vector<vertex>& parents) {
         q.pop();
 
         for (auto&& neighbour : g[u]) {
-            if (parents[neighbour] != -1) {
+            if (parents[neighbour] == -1) {
                 q.push(neighbour);
                 parents[neighbour] = u;
             }
