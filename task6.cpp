@@ -158,15 +158,15 @@ graph edmonds_karp(const graph& g) {
     while (true) {
         vector<vertex> parents = run_bfs(residual);
 
-        if (parents[g.size()-1]==-1)
+        if (parents[g.size() - 1] == -1)
             return flow;
 
         // adding flow, assume u -> v
-        vertex u = parents[g.size()-1];
-        vertex v = (vertex) g.size()-1;
+        vertex u = parents[g.size() - 1];
+        vertex v = (vertex)g.size() - 1;
         do {
-            for (int i = 0; i<g[u].size(); ++i) {
-                if (g[u][i]==v) {
+            for (int i = 0; i < g[u].size(); ++i) {
+                if (g[u][i] == v) {
                     flow[u].emplace_back(v);
                     break;
                 }
@@ -174,10 +174,33 @@ graph edmonds_karp(const graph& g) {
             v = u;
             u = parents[u];
         }
-        while (u!=-1);
+        while (v != 0);
 
         residual = build_residual(g, flow);
     }
+}
+
+void output_result(string filename, graph& flow, const int& n) {
+    ofstream ofs(filename);
+
+    if (flow[0].empty()) {
+        ofs << "-1";
+        return;
+    }
+
+    while (!flow[0].empty()) {
+        vertex u = flow[0][0];
+        flow[0].erase(flow[0].begin());
+        do {
+            if (u > 0 && u < n*n)
+                ofs << u - 1 << " ";
+
+            u = flow[u][0];
+        } while (u != flow.size() - 1);
+        ofs << endl;
+    }
+
+    ofs.close();
 }
 
 int main() {
@@ -193,6 +216,8 @@ int main() {
     graph flow = edmonds_karp(g);
 
     print_graph(flow);
+
+    output_result("output.txt", flow, n);
 
     return EXIT_SUCCESS;
 }
