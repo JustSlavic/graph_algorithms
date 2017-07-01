@@ -14,7 +14,13 @@ using namespace std;
 typedef int vertex;
 typedef vector<vector<vertex>> graph;
 
-pair<unsigned, unsigned> read_data(string filename, vector<int>& stct_x, vector<int>& stct_y, vector<int>& power_x, vector<int>& power_y) {
+pair<unsigned, unsigned> read_data(
+        string filename,
+        vector<int>& stct_x,
+        vector<int>& stct_y,
+        vector<int>& power_x,
+        vector<int>& power_y) {
+    
     ifstream ifs(filename);
 
     unsigned n, k;
@@ -181,7 +187,14 @@ graph edmonds_karp(const graph& g) {
     }
 }
 
-void output_result(string filename, graph& flow, const unsigned & n, const unsigned & k) {
+void output_result(
+        string filename,
+        graph& flow,
+        const vector<int>& stct_r,
+        const vector<int>& stct_c,
+        const unsigned & n,
+        const unsigned & k) {
+
     ofstream ofs(filename);
 
     if (flow[0].size() < k) {
