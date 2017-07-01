@@ -174,6 +174,7 @@ graph edmonds_karp(const graph& g) {
         do {
             for (int i = 0; i < g[u].size(); ++i) {
                 if (g[u][i] == v) {
+                    if (u) flow[u].clear();
                     flow[u].emplace_back(v);
                     break;
                 }
@@ -190,8 +191,6 @@ graph edmonds_karp(const graph& g) {
 void output_result(
         string filename,
         graph& flow,
-        const vector<int>& stct_r,
-        const vector<int>& stct_c,
         const unsigned & n,
         const unsigned & k) {
 
@@ -220,17 +219,13 @@ void output_result(
 int main() {
 
     vector<int> stct_r, stct_c, power_r, power_c; // stct = space and time continuum transgression
-
     unsigned n, k;
+
     tie(n, k) = read_data("input.txt", stct_r, stct_c, power_r, power_c);
 
     graph g = build_graph(n, stct_r, stct_c, power_r, power_c);
 
-    print_graph(g); cout << endl;
-
     graph flow = edmonds_karp(g);
-
-    print_graph(flow);
 
     output_result("output.txt", flow, n, k);
 
