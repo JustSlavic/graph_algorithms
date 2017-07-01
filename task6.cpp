@@ -62,7 +62,7 @@ unsigned read_data(string filename, vector<int>& stct_x, vector<int>& stct_y, ve
  * and  (2,1) = 2*3 + 1 + 1 + 9 = 17
  */
 
-graph build_graph(unsigned n, vector<int>& stct_x, vector<int>& stct_y, vector<int>& power_x, vector<int>& power_y) {
+graph build_graph(unsigned n, vector<int>& stct_r, vector<int>& stct_c, vector<int>& power_r, vector<int>& power_c) {
     const unsigned N = 2*n*n + 2;
     const int shift[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
@@ -82,9 +82,11 @@ graph build_graph(unsigned n, vector<int>& stct_x, vector<int>& stct_y, vector<i
         }
     }
 
-    for (int i = 0; i < stct_x.size(); ++i) {
-        g[0].emplace_back(stct_x[i]*n + stct_y[i] + 1);
-        g[power_x[i]*n + power_y[i] + 1 + n*n].emplace_back(N - 1);
+    for (int i = 0; i < stct_r.size(); ++i) {
+        // links fake source with stct points
+        g[0].emplace_back(stct_r[i]*n + stct_c[i] + 1);
+        // links power points with fake sink
+        g[power_r[i]*n + power_c[i] + 1 + n*n].emplace_back(N - 1);
     }
 
     return g;
@@ -124,31 +126,48 @@ vector<vertex> run_bfs(const graph& g) {
 }
 
 graph edmonds_karp(const graph& g) {
-    /// loop
     /// 1. build residual graph
-    /// 2. run bfs
-    /// 3. if there is no path -> return flow; else -> build additional path;
-    /// 4. add flow
+    /// 2. loop
+    /// 3.   run bfs
+    /// 4.   if there is no path -> return flow; else -> add flow;
+    /// 5.   rebuild residual graph
 
     graph flow(g.size());
     graph residual(g);
 
-    vector<vertex> parents = run_bfs(g);
+    vector<vertex> parents = run_bfs(residual);
 
     if (parents[g.size() - 1] == -1)
         return flow;
-    
+
+    // assume u -> v
+    vertex u = parents[g.size() - 1];
+    vertex v = (vertex)g.size() - 1;
+    do {
+        for (int i = 0; i < g[u].size(); ++i) {
+            if (g[u][i] == v) {
+                flow[u].emplace_back(v);
+                break;
+            }
+        }
+        v = u;
+        u = parents[u];
+    } while (u != -1);
+
+    return flow;
 }
 
 int main() {
 
-    vector<int> stct_x, stct_y, power_x, power_y; // stct = space and time continuum transgression
+    vector<int> stct_r, stct_c, power_r, power_c; // stct = space and time continuum transgression
 
-    unsigned n = read_data("input.txt", stct_x, stct_y, power_x, power_y);
+    unsigned n = read_data("input.txt", stct_r, stct_c, power_r, power_c);
 
-    graph g = build_graph(n, stct_x, stct_y, power_x, power_y);
+    graph g = build_graph(n, stct_r, stct_c, power_r, power_c);
 
     print_graph(g);
+
+    graph flow = edmonds_karp(g);
 
     return EXIT_SUCCESS;
 }
