@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <vector>
+#include <iostream>
 
 using namespace std;
 
@@ -87,6 +88,15 @@ graph build_graph(unsigned n, vector<int>& stct_x, vector<int>& stct_y, vector<i
     return g;
 }
 
+void print_graph(const graph& g) {
+    for (auto&& node : g) {
+        for (auto&& neighbour : node) {
+            cout << neighbour << " ";
+        }
+        cout << endl;
+    }
+}
+
 int main() {
 
     vector<int> stct_x, stct_y, power_x, power_y; // stct = space and time continuum transgression
@@ -94,6 +104,8 @@ int main() {
     unsigned n = read_data("input.txt", stct_x, stct_y, power_x, power_y);
 
     graph g = build_graph(n, stct_x, stct_y, power_x, power_y);
+
+    print_graph(g);
 
     return EXIT_SUCCESS;
 }
