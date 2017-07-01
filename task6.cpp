@@ -4,11 +4,13 @@
 
 #include <fstream>
 #include <vector>
+#include <queue>
 #include <iostream>
 
 using namespace std;
 
-typedef vector<vector<int>> graph;
+typedef int vertex;
+typedef vector<vector<vertex>> graph;
 
 unsigned read_data(string filename, vector<int>& stct_x, vector<int>& stct_y, vector<int>& power_x, vector<int>& power_y) {
     ifstream ifs(filename);
@@ -95,6 +97,47 @@ void print_graph(const graph& g) {
         }
         cout << endl;
     }
+}
+
+void bfs(const graph& g, vertex v, vector<vertex>& parents) {
+    queue<vertex> q;
+
+    q.push(v);
+
+    while (!q.empty()) {
+        vertex u = q.front();
+        q.pop();
+
+        for (auto&& neighbour : g[u]) {
+            if (parents[neighbour] != -1) {
+                q.push(neighbour);
+                parents[neighbour] = u;
+            }
+        }
+    }
+}
+
+vector<vertex> run_bfs(const graph& g) {
+    vector<vertex> parents(g.size(), -1);
+    bfs(g, 0, parents);
+    return parents;
+}
+
+graph edmonds_karp(const graph& g) {
+    /// loop
+    /// 1. build residual graph
+    /// 2. run bfs
+    /// 3. if there is no path -> return flow; else -> build additional path;
+    /// 4. add flow
+
+    graph flow(g.size());
+    graph residual(g);
+
+    vector<vertex> parents = run_bfs(g);
+
+    if (parents[g.size() - 1] == -1)
+        return flow;
+    
 }
 
 int main() {
