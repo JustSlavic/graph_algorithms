@@ -6,6 +6,7 @@
 #include <vector>
 #include <queue>
 #include <iostream>
+#include <iomanip>
 
 using namespace std;
 
@@ -93,8 +94,9 @@ graph build_graph(unsigned n, vector<int>& stct_r, vector<int>& stct_c, vector<i
 }
 
 void print_graph(const graph& g) {
-    for (auto&& node : g) {
-        for (auto&& neighbour : node) {
+    for (int i = 0; i < g.size(); ++i) {
+        cout << setw(2) << i << " | ";
+        for (auto&& neighbour : g[i]) {
             cout << neighbour << " ";
         }
         cout << endl;
@@ -140,7 +142,7 @@ graph edmonds_karp(const graph& g) {
     if (parents[g.size() - 1] == -1)
         return flow;
 
-    // assume u -> v
+    // adding flow, assume u -> v
     vertex u = parents[g.size() - 1];
     vertex v = (vertex)g.size() - 1;
     do {
@@ -165,9 +167,11 @@ int main() {
 
     graph g = build_graph(n, stct_r, stct_c, power_r, power_c);
 
-    print_graph(g);
+    print_graph(g); cout << endl;
 
     graph flow = edmonds_karp(g);
+
+    print_graph(flow);
 
     return EXIT_SUCCESS;
 }
