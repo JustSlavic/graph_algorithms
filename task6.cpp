@@ -7,13 +7,14 @@
 #include <queue>
 #include <iostream>
 #include <iomanip>
+#include <tuple>
 
 using namespace std;
 
 typedef int vertex;
 typedef vector<vector<vertex>> graph;
 
-unsigned read_data(string filename, vector<int>& stct_x, vector<int>& stct_y, vector<int>& power_x, vector<int>& power_y) {
+pair<unsigned, unsigned> read_data(string filename, vector<int>& stct_x, vector<int>& stct_y, vector<int>& power_x, vector<int>& power_y) {
     ifstream ifs(filename);
 
     unsigned n, k;
@@ -44,7 +45,7 @@ unsigned read_data(string filename, vector<int>& stct_x, vector<int>& stct_y, ve
 
     ifs.close();
 
-    return n;
+    return make_pair(n, k);
 }
 
 /* numerating will be:
@@ -180,10 +181,10 @@ graph edmonds_karp(const graph& g) {
     }
 }
 
-void output_result(string filename, graph& flow, const int& n) {
+void output_result(string filename, graph& flow, const unsigned & n, const unsigned & k) {
     ofstream ofs(filename);
 
-    if (flow[0].empty()) {
+    if (flow[0].size() < k) {
         ofs << "-1";
         return;
     }
@@ -207,7 +208,8 @@ int main() {
 
     vector<int> stct_r, stct_c, power_r, power_c; // stct = space and time continuum transgression
 
-    unsigned n = read_data("input.txt", stct_r, stct_c, power_r, power_c);
+    unsigned n, k;
+    tie(n, k) = read_data("input.txt", stct_r, stct_c, power_r, power_c);
 
     graph g = build_graph(n, stct_r, stct_c, power_r, power_c);
 
@@ -217,7 +219,7 @@ int main() {
 
     print_graph(flow);
 
-    output_result("output.txt", flow, n);
+    output_result("output.txt", flow, n, k);
 
     return EXIT_SUCCESS;
 }
