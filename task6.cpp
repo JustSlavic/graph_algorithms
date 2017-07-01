@@ -127,6 +127,24 @@ vector<vertex> run_bfs(const graph& g) {
     return parents;
 }
 
+graph build_residual(const graph& g, const graph& flow) {
+    graph residual(g);
+
+    for (vertex v = 0; v < flow.size(); ++v) {
+        for (int i = 0; i < flow[v].size(); ++i) {
+            for (auto it = residual[v].begin(); it != residual[v].end(); ++it) {
+                if (*it == flow[v][i]) {
+                    residual[v].erase(it);
+                    residual[flow[v][i]].emplace_back(v);
+                    break;
+                }
+            }
+        }
+    }
+
+    return residual;
+}
+
 graph edmonds_karp(const graph& g) {
     /// 1. build residual graph
     /// 2. loop
@@ -155,6 +173,8 @@ graph edmonds_karp(const graph& g) {
         v = u;
         u = parents[u];
     } while (u != -1);
+
+    residual = build_residual(g, flow);
 
     return flow;
 }
