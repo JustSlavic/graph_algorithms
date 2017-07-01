@@ -155,28 +155,29 @@ graph edmonds_karp(const graph& g) {
     graph flow(g.size());
     graph residual(g);
 
-    vector<vertex> parents = run_bfs(residual);
+    while (true) {
+        vector<vertex> parents = run_bfs(residual);
 
-    if (parents[g.size() - 1] == -1)
-        return flow;
+        if (parents[g.size()-1]==-1)
+            return flow;
 
-    // adding flow, assume u -> v
-    vertex u = parents[g.size() - 1];
-    vertex v = (vertex)g.size() - 1;
-    do {
-        for (int i = 0; i < g[u].size(); ++i) {
-            if (g[u][i] == v) {
-                flow[u].emplace_back(v);
-                break;
+        // adding flow, assume u -> v
+        vertex u = parents[g.size()-1];
+        vertex v = (vertex) g.size()-1;
+        do {
+            for (int i = 0; i<g[u].size(); ++i) {
+                if (g[u][i]==v) {
+                    flow[u].emplace_back(v);
+                    break;
+                }
             }
+            v = u;
+            u = parents[u];
         }
-        v = u;
-        u = parents[u];
-    } while (u != -1);
+        while (u!=-1);
 
-    residual = build_residual(g, flow);
-
-    return flow;
+        residual = build_residual(g, flow);
+    }
 }
 
 int main() {
