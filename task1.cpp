@@ -125,6 +125,15 @@ vector<edge> solve_problem(const graph& g) {
     return vector<edge>();
 };
 
+void output_result(const string& filename, const vector<edge>& bridges) {
+    ofstream ofs(filename);
+
+    for (auto&& b : bridges) {
+        ofs << b.first << " " << b.second << endl;
+    }
+    
+    ofs.close();
+}
 
 int main(int argc, char** argv) {
 
@@ -132,11 +141,7 @@ int main(int argc, char** argv) {
 
     auto bridges = solve_problem(g);
 
-    ofstream ofs("output.txt");
-    for (auto&& b : bridges) {
-        ofs << b.first << " " << b.second << endl;
-    }
-    ofs.close();
+    output_result("output.txt", bridges);
 
     return 0;
 }
