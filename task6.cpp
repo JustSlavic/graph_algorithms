@@ -14,12 +14,7 @@ using namespace std;
 typedef int vertex;
 typedef vector<vector<vertex>> graph;
 
-pair<unsigned, unsigned> read_data(
-        string filename,
-        vector<int>& stct_x,
-        vector<int>& stct_y,
-        vector<int>& power_x,
-        vector<int>& power_y) {
+pair<unsigned, unsigned> read_data(string filename, vector<vector<int>>& pins) {
     
     ifstream ifs(filename);
 
@@ -27,26 +22,15 @@ pair<unsigned, unsigned> read_data(
 
     ifs >> n >> k;
 
+    pins.resize(4);
+
     int tmp;
 
-    for (int i = 0; i < k; ++i) {
-        ifs >> tmp;
-        stct_x.emplace_back(tmp);
-    }
-
-    for (int j = 0; j < k; ++j) {
-        ifs >> tmp;
-        stct_y.emplace_back(tmp);
-    }
-
-    for (int i = 0; i < k; ++i) {
-        ifs >> tmp;
-        power_x.emplace_back(tmp);
-    }
-
-    for (int j = 0; j < k; ++j) {
-        ifs >> tmp;
-        power_y.emplace_back(tmp);
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j<k; ++j) {
+            ifs >> tmp;
+            pins[i].emplace_back(tmp);
+        }
     }
 
     ifs.close();
@@ -70,7 +54,7 @@ pair<unsigned, unsigned> read_data(
  * and  (2,1) = 2*3 + 1 + 1 + 9 = 17
  */
 
-graph build_graph(unsigned n, vector<int>& stct_r, vector<int>& stct_c, vector<int>& power_r, vector<int>& power_c) {
+graph build_graph(unsigned n, vector<vector<int>>& stct) {
     const unsigned N = 2*n*n + 2;
     const int shift[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
@@ -82,19 +66,19 @@ graph build_graph(unsigned n, vector<int>& stct_r, vector<int>& stct_c, vector<i
             g[r*n + c + 1].emplace_back(r*n + c + 1 + n*n);
 
             for (int i = 0; i < 4; ++i) {
-                if (r + shift[i][0] < 0 || r + shift[i][0] >= n || c + shift[i][1] < 0 || c + shift[i][1] >= n)
-                    continue;
+                bool out_of_range = r + shift[i][0] < 0 || r + shift[i][0] >= n || c + shift[i][1] < 0 || c + shift[i][1] >= n;
 
-                g[r*n + c + 1 + n*n].emplace_back((r + shift[i][0])*n + (c + shift[i][1]) + 1);
+                if (!out_of_range)
+                    g[r*n + c + 1 + n*n].emplace_back((r + shift[i][0])*n + (c + shift[i][1]) + 1);
             }
         }
     }
 
-    for (int i = 0; i < stct_r.size(); ++i) {
+    for (int i = 0; i < stct[0].size(); ++i) {
         // links fake source with stct points
-        g[0].emplace_back(stct_r[i]*n + stct_c[i] + 1);
+        g[0].emplace_back(stct[0][i]*n + stct[1][i] + 1);
         // links power points with fake sink
-        g[power_r[i]*n + power_c[i] + 1 + n*n].emplace_back(N - 1);
+        g[stct[2][i]*n + stct[3][i] + 1 + n*n].emplace_back(N - 1);
     }
 
     return g;
@@ -174,7 +158,7 @@ graph edmonds_karp(const graph& g) {
         do {
             for (int i = 0; i < g[u].size(); ++i) {
                 if (g[u][i] == v) {
-                    if (u) flow[u].clear();
+                    if (u) flow[u].clear(); // from fake source can run multiple flows, but not from real ones
                     flow[u].emplace_back(v);
                     break;
                 }
@@ -218,12 +202,12 @@ void output_result(
 
 int main() {
 
-    vector<int> stct_r, stct_c, power_r, power_c; // stct = space and time continuum transgression
+    vector<vector<int>> stct; // stct = space and time continuum transgression
     unsigned n, k;
 
-    tie(n, k) = read_data("input.txt", stct_r, stct_c, power_r, power_c);
+    tie(n, k) = read_data("input.txt", stct);
 
-    graph g = build_graph(n, stct_r, stct_c, power_r, power_c);
+    graph g = build_graph(n, stct);
 
     graph flow = edmonds_karp(g);
 
