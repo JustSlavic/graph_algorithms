@@ -54,7 +54,7 @@ pair<unsigned, unsigned> read_data(string filename, vector<vector<int>>& pins) {
  * and  (2,1) = 2*3 + 1 + 1 + 9 = 17
  */
 
-graph build_graph(unsigned n, vector<vector<int>>& stct) {
+graph build_graph(unsigned n, vector<vector<int>>& pins) {
     const unsigned N = 2*n*n + 2;
     const int shift[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
@@ -74,11 +74,11 @@ graph build_graph(unsigned n, vector<vector<int>>& stct) {
         }
     }
 
-    for (int i = 0; i < stct[0].size(); ++i) {
+    for (int i = 0; i < pins[0].size(); ++i) {
         // links fake source with stct points
-        g[0].emplace_back(stct[0][i]*n + stct[1][i] + 1);
+        g[0].emplace_back(pins[0][i]*n + pins[1][i] + 1);
         // links power points with fake sink
-        g[stct[2][i]*n + stct[3][i] + 1 + n*n].emplace_back(N - 1);
+        g[pins[2][i]*n + pins[3][i] + 1 + n*n].emplace_back(N - 1);
     }
 
     return g;
@@ -202,12 +202,12 @@ void output_result(
 
 int main() {
 
-    vector<vector<int>> stct; // stct = space and time continuum transgression
+    vector<vector<int>> pins;
     unsigned n, k;
 
-    tie(n, k) = read_data("input.txt", stct);
+    tie(n, k) = read_data("input.txt", pins);
 
-    graph g = build_graph(n, stct);
+    graph g = build_graph(n, pins);
 
     graph flow = edmonds_karp(g);
 
