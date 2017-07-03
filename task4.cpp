@@ -261,6 +261,7 @@ void print_graph(graph& g) {
     }
 }
 
+
 void output_answer(string filename, int ans) {
     ofstream ofs(filename);
 
