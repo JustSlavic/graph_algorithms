@@ -117,11 +117,11 @@ unsigned edge_length(edge e) {
     return static_cast<unsigned>( abs(e.first.x - e.second.x + e.first.y - e.second.y) );
 }
 
-bool compare_h(vector<int>& lhs, vector<int>&rhs) {
+bool compare_h(const vector<int>& lhs, const vector<int>&rhs) {
     return (lhs[0] == rhs[0] ? lhs[1] < rhs[1] : lhs[0] < rhs[0]);
 }
 
-bool compare_v(vector<int>& lhs, vector<int>& rhs) {
+bool compare_v(const vector<int>& lhs, const vector<int>& rhs) {
     return (lhs[2]==rhs[2] ? lhs[0]<rhs[0] : lhs[2]<rhs[2]);
 }
 
