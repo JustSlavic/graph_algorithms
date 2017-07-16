@@ -11,8 +11,8 @@
 
 using namespace std;
 
-typedef int vertex;
-typedef vector<vector<vertex>> graph;
+using vertex = int;
+using graph = vector<vector<vertex>>;
 
 pair<unsigned, unsigned> read_data(string filename, vector<vector<int>>& pins) {
     
