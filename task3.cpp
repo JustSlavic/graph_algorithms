@@ -15,10 +15,10 @@ struct vertex_info {
     size_t leave_time;
     bool used;
 };
-typedef vector<struct vertex_info> graph_info;
+using graph_info = vector<struct vertex_info>;
 
-typedef size_t vertex;
-typedef vector<vector<double>> graph;
+using vertex = size_t;
+using graph = vector<vector<double>>;
 
 graph parse_graph(const string& filename) {
     ifstream ifs(filename);
