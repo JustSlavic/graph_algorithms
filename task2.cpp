@@ -10,8 +10,8 @@
 
 using namespace std;
 
-typedef vector<vector<unsigned int>> labyrinth;
-typedef tuple<unsigned int, unsigned int, unsigned int, unsigned int> vertex;
+using labyrynth = vector<vector<unsigned>>;
+using vertex = tuple<unsigned, unsigned, unsigned, unsigned>;
 
 tuple<labyrinth, labyrinth, vertex> parse_labyrinth(string filename) {
     ifstream ifs(filename);
