@@ -9,16 +9,16 @@
 
 using namespace std;
 
-typedef size_t vertex;
-typedef vector<vector<vertex>> graph;
+using vertex = size_t;
+using graph = vector<vector<vertex>>;
 struct vertex_info {
     vertex parent;
     size_t tin;
     size_t fup;
     bool used;
 };
-typedef vector<struct vertex_info> graph_info;
-typedef pair<vertex, vertex> edge;
+using graph_info = vector<struct vertex_info>;
+using edge = pair<vertex, vertex>;
 
 graph parse_graph(string file_path) {
     ifstream ifs(file_path);
