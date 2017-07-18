@@ -184,7 +184,7 @@ unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
     return sum;
 }
 
-unsigned kraskal(graph& g) {
+unsigned kruskal(graph& g) {
     sort(g.begin(), g.end(), [](edge e1, edge e2) {
         return edge_length(e1) < edge_length(e2);
     });
@@ -279,7 +279,7 @@ int main() {
 
     unsigned amount_crosses = parse(h, v, g);
 
-    unsigned redundant_length = kraskal(g);
+    unsigned redundant_length = kruskal(g);
 
     output_answer("output.txt", score - amount_crosses - redundant_length);
 
