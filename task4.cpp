@@ -36,84 +36,59 @@ bool operator!=(const vertex& lhs, const vertex& rhs) {
 }
 
 template <class T>
-class union_sets {
-public:
-    void insert(const T& t) {
-        for (auto&& s : sets) {
-            if (s.find(t) != s.end()) {
-                return;
-            }
+struct DSU {
+    vector<T> forest;
+    vector<int> parent;
+
+    void make_set(const T& x) {
+        for (auto&& t : forest) {
+            if (t == x) return;
         }
-        insert_singleton(t);
+
+        forest.emplace_back(x);
+        parent.emplace_back(parent.size());
     }
 
-    void unite(const T& t1, const T& t2) {
-        if (in_one_set(t1, t2)) {
-            return;
-        }
-        auto found_it = sets.end();
-        auto found_jt = sets.end();
-
-        for (auto it = sets.begin(), jt = sets.begin();
-             it != sets.end() && jt != sets.end();
-             ++it, ++jt) {
-            if ((*it).find(t1) != (*it).end()) {
-                found_it = it;
-            }
-            if ((*jt).find(t2) != (*jt).end()) {
-                found_jt = jt;
-            }
-            if (found_it != sets.end() && found_jt != sets.end()) {
+    T find_set(const T& x) {
+        int i = 0;
+        for (; i < forest.size(); ++i) { // поиск индекса элемента
+            if (forest[i] == x) {
                 break;
             }
         }
-        if (found_it == sets.end() && found_jt == sets.end()) {
-            sets.push_back({t1, t2});
-            return;
-        }
-        if (found_it == sets.end()) {
-            (*found_jt).insert(t2);
-        }
-        if (found_jt == sets.end()) {
-            (*found_it).insert(t1);
+
+        while (i != parent[i]) { // поиск лидера множества
+            i = parent[i] = parent[parent[i]];
         }
 
-        for (auto&& t : *found_jt) {
-            (*found_it).insert(t);
-        }
-        sets.erase(found_jt);
+        return forest[i]; // возвращение лидера
     }
 
-    bool in_one_set(const T& t1, const T& t2) {
-        for (auto&& s : sets) {
-            auto s_in1 = s.find(t1);
-            auto s_in2 = s.find(t2);
-            if (s_in1 != s.end() && s_in2 != s.end()) {
-                return true;
-            }
+    void union_sets(const T& lhs, const T& rhs) {
+        int i = -1;
+        int j = -1;
+        for (int k = 0; k < forest.size(); ++k) {
+            if (forest[k] == lhs) i = k;
+            if (forest[k] == rhs) j = k;
+            if (i != -1 && j != -1) break;
         }
-        return false;
+
+        while (i != parent[i] || j != parent[j]) {
+            i = parent[i];
+            j = parent[j];
+        }
+
+        parent[j] = i;
     }
 
-    void print(std::ostream& os) {
-        for (auto&& s : sets) {
-            os << "set: { ";
-            for (auto&& t : s) {
-                os << t << ", ";
-            }
-            os << " }" << std::endl;
+    void print() {
+        for (int i = 0; i < forest.size(); ++i) {
+            cout << "{ " << forest[i] << " :-> " << find_set(forest[i]) << " };" << endl;
         }
     }
-private:
-    void insert_singleton(const T& t) {
-        sets.push_back({t});
-    }
-
-private:
-    vector<set<T>> sets;
 };
 
-unsigned edge_length(edge e) {
+unsigned edge_length(const edge& e) {
     return static_cast<unsigned>( abs(e.first.x - e.second.x + e.first.y - e.second.y) );
 }
 
@@ -185,7 +160,7 @@ unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
 }
 
 unsigned kruskal(graph& g) {
-    sort(g.begin(), g.end(), [](edge e1, edge e2) {
+    sort(g.begin(), g.end(), [](const edge& e1, const edge& e2) {
         return edge_length(e1) < edge_length(e2);
     });
 
@@ -199,26 +174,24 @@ unsigned kruskal(graph& g) {
     cout << endl;
 #endif //sorted
 
-    union_sets<vertex> us;
+    DSU<vertex> dsu;
     for (auto&& e : g) {
-        us.insert(e.first);
-        us.insert(e.second);
+        dsu.make_set(e.first);
+        dsu.make_set(e.second);
     }
 
     set<edge> tree;
     for (auto&& e : g) {
-        if (us.in_one_set(e.first, e.second)) {
-            continue;
+        if (dsu.find_set(e.first) != dsu.find_set(e.second)) {
+            dsu.union_sets(e.first, e.second);
+            tree.insert(e);
         }
-        us.unite(e.first, e.second);
-        tree.insert(e);
     }
 
 //#define treeprint
-
 #ifdef treeprint
     cout << " === UNION SETS === " << endl;
-    us.print(cout); cout << endl;
+    dsu.print(); cout << endl;
 
     cout << " === TREE === " << endl;
     for (auto&& e : tree) {
@@ -227,20 +200,10 @@ unsigned kruskal(graph& g) {
     cout << endl;
 #endif //tree
 
-//#define missing
-
-
     unsigned sum = 0;
-#ifdef missing
-    cout << " === MISSING EDGES === " << endl;
-#endif //missing
     for (auto&& e : g) {
-        if (tree.find(e) == tree.end()) {
-#ifdef missing
-            cout << e.first << " --- " << e.second << endl;
-#endif //missing
+        if (tree.find(e) == tree.end())
             sum += edge_length(e) - 1;
-        }
     }
 
     return sum;
