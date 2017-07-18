@@ -117,15 +117,7 @@ unsigned edge_length(edge e) {
     return static_cast<unsigned>( abs(e.first.x - e.second.x + e.first.y - e.second.y) );
 }
 
-bool compare_h(const vector<int>& lhs, const vector<int>&rhs) {
-    return (lhs[0] == rhs[0] ? lhs[1] < rhs[1] : lhs[0] < rhs[0]);
-}
-
-bool compare_v(const vector<int>& lhs, const vector<int>& rhs) {
-    return (lhs[2]==rhs[2] ? lhs[0]<rhs[0] : lhs[2]<rhs[2]);
-}
-
-unsigned read_data(string filename, vector<vector<int>>& h, vector<vector<int>>& v) {
+unsigned read_data(const string& filename, vector<vector<int>>& h, vector<vector<int>>& v) {
     ifstream ifs(filename);
 
     unsigned h_amount, v_amount, sum = 0;
@@ -276,9 +268,12 @@ int main() {
 
     unsigned score = read_data("input.txt", h, v);
 
-    //todo sort h & v
-    sort(h.begin(), h.end(), compare_h);
-    sort(v.begin(), v.end(), compare_v);
+    sort(h.begin(), h.end(), [](const vector<int>& lhs, const vector<int>& rhs) {
+        return (lhs[0] == rhs[0] ? lhs[1] < rhs[1] : lhs[0] < rhs[0]);
+    });
+    sort(v.begin(), v.end(), [](const vector<int>& lhs, const vector<int>& rhs) {
+        return (lhs[2] == rhs[2] ? lhs[0] < rhs[0] : lhs[2] < rhs[2]);
+    });
 
     graph g;
 
