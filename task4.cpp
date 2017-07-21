@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <set>
 #include <tuple>
+#include <map>
 
 using namespace std;
 
@@ -19,7 +20,13 @@ struct vertex {
         y = static_cast<int>(_y);
     }
 };
-typedef pair<vertex, vertex> edge;
+
+struct edge {
+    int from;
+    int to;
+    int capacity;
+    edge(int u, int v, int c) :from(u), to(v), capacity(c) {}
+};
 typedef vector<edge> graph;
 
 ostream& operator<<(ostream& os, const vertex& v) {
@@ -35,61 +42,63 @@ bool operator!=(const vertex& lhs, const vertex& rhs) {
     return ! (lhs == rhs);
 }
 
-template <class T>
+bool operator<(const edge& lhs, const edge& rhs) {
+    return lhs.capacity < rhs.capacity;
+}
+
+bool operator!=(const edge& lhs, const edge& rhs) {
+    return lhs.from == rhs.from && lhs.to == rhs.to;
+}
+
 struct DSU {
-    vector<T> forest;
     vector<int> parent;
+    vector<int> rank;
 
-    void make_set(const T& x) {
-        for (auto&& t : forest) {
-            if (t == x) return;
-        }
-
-        forest.emplace_back(x);
-        parent.emplace_back(parent.size());
+    DSU() {
+        parent.resize(1000000, -1);
+        rank.resize(1000000, -1);
     }
 
-    T find_set(const T& x) {
-        int i = 0;
-        for (; i < forest.size(); ++i) { // поиск индекса элемента
-            if (forest[i] == x) {
-                break;
+    void make_set(const int& x) {
+        if (parent[x] < 0) {
+            parent[x] = x;
+            rank[x] = 0;
+        }
+    }
+
+    int find_set(int x) {
+        while (parent[x] != x) {
+            x = parent[x] = parent[parent[x]]; // эвристика сжатия пути
+        }
+
+        return x;
+    }
+
+    void union_sets(const int& lhs, const int& rhs) {
+        int a = find_set(lhs);
+        int b = find_set(rhs);
+
+        if (a != b) {
+            if (rank[a] > rank[b]) {
+                parent[b] = a;
+                rank[a]++;
+            } else {
+                parent[a] = b;
+                rank[b]++;
             }
         }
-
-        while (i != parent[i]) { // поиск лидера множества
-            i = parent[i] = parent[parent[i]];
-        }
-
-        return forest[i]; // возвращение лидера
-    }
-
-    void union_sets(const T& lhs, const T& rhs) {
-        int i = -1;
-        int j = -1;
-        for (int k = 0; k < forest.size(); ++k) {
-            if (forest[k] == lhs) i = k;
-            if (forest[k] == rhs) j = k;
-            if (i != -1 && j != -1) break;
-        }
-
-        while (i != parent[i] || j != parent[j]) {
-            i = parent[i];
-            j = parent[j];
-        }
-
-        parent[j] = i;
     }
 
     void print() {
-        for (int i = 0; i < forest.size(); ++i) {
-            cout << "{ " << forest[i] << " :-> " << find_set(forest[i]) << " };" << endl;
+        for (int i = 0; i < parent.size(); ++i) {
+            if (parent[i] >= 0)
+                cout << "{" << i << " -> " << parent[i] << ", rank = " << rank[i] << ", tree = " << find_set(i) << "}" << endl;
         }
     }
 };
 
-unsigned edge_length(const edge& e) {
-    return static_cast<unsigned>( abs(e.first.x - e.second.x + e.first.y - e.second.y) );
+unsigned edge_length(const vertex& u, const vertex& v) {
+    return static_cast<unsigned>( abs(u.x - v.x + u.y - v.y) );
 }
 
 unsigned read_data(const string& filename, vector<vector<int>>& h, vector<vector<int>>& v) {
@@ -121,39 +130,77 @@ unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
     vector<vector<int>> h2(h);
     unsigned sum = 0;
 
+    map<vertex, int> m;
+    int vertex_num = 0;
+
+    /*
+     * todo:
+     *     1. сформировать новую структуру "ребро", хранящую номера вершин и вес -- OK
+     *     2. перенумеровать верхушки слов, и горизонтальные, и вертикальные     -- OK
+     *     3. с помощью внесения в map соответствий (vertex -> int), перенумеровать все пересечения и внести корректные
+     *        ребра -- OK
+     *     4. донумеровать концы -- OK
+     *     5. переделать DSU для работы с int-ами
+     */
+
+    //todo найти способ находить неразрешимые случаи (на этапе создания графа или на этапе Краскала? скорее всего 1е)
+
+    for (auto&& r : h) {
+        m.emplace(vertex(r[0], r[1]), vertex_num++);
+    }
+    for (auto&& c : v) {
+        m.emplace(vertex(c[0], c[2]), vertex_num++);
+    }
+
     for (int r = 0; r < h.size(); ++r) {
         for (int c = 0; c < v.size(); ++c) {
-            vertex cross(h[r][0], v[c][2]);
+            vertex top_h(h[r][0], h[r][1]);
+            vertex top_v(v[c][0], v[c][2]);
 
-            if (cross.y >= h[r][1] && cross.y <= h[r][2] && cross.x >= v[c][0] && cross.x <= v[c][1]) {
-//                cout << "horizontal cross: " << cross << endl;
+            vertex cross(top_h.x, top_v.y);
+
+            if (cross.y >= top_h.y && cross.y <= h[r][2] && cross.x >= top_v.x && cross.x <= v[c][1]) {
                 sum++;
+
+                m.emplace(cross, vertex_num++);
             }
 
             //check if cross point lays on the horizontal word
-            if (cross.y > h[r][1] && cross.y < h[r][2] && cross.x >= v[c][0] && cross.x <= v[c][1]) {
+            if (cross.y > top_h.y && cross.y < h[r][2] && cross.x >= top_v.x && cross.x <= v[c][1]) {
                 //if it is, add new edge to the graph and move left side of the word to the cross point
-                g.emplace_back(make_pair(vertex(h[r][0], h[r][1]), cross));
+                g.emplace_back(edge(m.at(top_h), m.at(cross), edge_length(top_h, cross)));
                 h[r][1] = cross.y;
             }
 
             //check if cross point lays on the vertical word
-            if (cross.x > v[c][0] && cross.x < v[c][1] && cross.y >= h2[r][1] && cross.y <= h2[r][2]) {
-//                cout << "vertical cross: " << cross << endl;
+            if (cross.x > top_v.x && cross.x < v[c][1] && cross.y >= top_h.y && cross.y <= h2[r][2]) {
                 //if it is, add new edge to the graph and move top side of the word to the cross point
-                g.emplace_back(make_pair(vertex(v[c][0], v[c][2]), cross));
+                g.emplace_back(edge(m.at(top_v), m.at(cross), edge_length(top_v, cross)));
                 v[c][0] = cross.x;
             }
         }
         //after all vertical checked push final edge of the horizontal word
-        g.emplace_back(make_pair(vertex(h[r][0], h[r][1]), vertex(h[r][0], h[r][2])));
+        m.emplace(vertex(h[r][0], h[r][2]), vertex_num);
+        g.emplace_back(edge(m.at(vertex(h[r][0], h[r][1])), vertex_num++, edge_length(vertex(h[r][0], h[r][1]), vertex(h[r][0], h[r][2]))));
     }
 
     for (int c = 0; c < v.size(); ++c) {
         //after all horizontal checked, push final edge of the vertical word
-        g.emplace_back(make_pair(vertex(v[c][0], v[c][2]), vertex(v[c][1], v[c][2])));
+        if (m.find(vertex(v[c][1], v[c][2])) == m.end()) {
+            m.emplace(vertex(v[c][1], v[c][2]), vertex_num);
+            g.emplace_back(edge(m.at(vertex(v[c][0], v[c][2])), vertex_num++,
+                    edge_length(vertex(v[c][0], v[c][2]), vertex(v[c][1], v[c][2]))));
+        } else {
+            g.emplace_back(edge(m.at(vertex(v[c][0], v[c][2])), m.at(vertex(v[c][1], v[c][2])),
+                    edge_length(vertex(v[c][0], v[c][2]), vertex(v[c][1], v[c][2]))));
+        }
+
     }
 
+    cout << "=== MAP === " << endl;
+    for (auto&& t : m) {
+        cout << t.first << " -> " << t.second << endl;
+    }
     cout << endl;
 
     return sum;
@@ -161,7 +208,7 @@ unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
 
 unsigned kruskal(graph& g) {
     sort(g.begin(), g.end(), [](const edge& e1, const edge& e2) {
-        return edge_length(e1) < edge_length(e2);
+        return e1.capacity < e2.capacity;
     });
 
 //#define sorted
@@ -174,36 +221,23 @@ unsigned kruskal(graph& g) {
     cout << endl;
 #endif //sorted
 
-    DSU<vertex> dsu;
+    DSU dsu;
     for (auto&& e : g) {
-        dsu.make_set(e.first);
-        dsu.make_set(e.second);
+        dsu.make_set(e.from);
+        dsu.make_set(e.to);
     }
 
-    set<edge> tree;
-    for (auto&& e : g) {
-        if (dsu.find_set(e.first) != dsu.find_set(e.second)) {
-            dsu.union_sets(e.first, e.second);
-            tree.insert(e);
-        }
-    }
-
-//#define treeprint
-#ifdef treeprint
-    cout << " === UNION SETS === " << endl;
-    dsu.print(); cout << endl;
-
-    cout << " === TREE === " << endl;
-    for (auto&& e : tree) {
-        cout << "\t" << e.first << " -- " << e.second << endl;
-    }
-    cout << endl;
-#endif //tree
-
+//    cout << "=== MISSING EDGES === " << endl;
+//    cout << "=== TREE === "<< endl;
     unsigned sum = 0;
     for (auto&& e : g) {
-        if (tree.find(e) == tree.end())
-            sum += edge_length(e) - 1;
+        if (dsu.find_set(e.from) != dsu.find_set(e.to)) {
+            dsu.union_sets(e.from, e.to);
+//            cout << "\t(" << e.from << ", " << e.to << ") c = " << e.capacity << endl;
+        } else {
+            sum += e.capacity - 1;
+//            cout << "\t(" << e.from << ", " << e.to << ") c = " << e.capacity << endl;
+        }
     }
 
     return sum;
@@ -212,7 +246,7 @@ unsigned kruskal(graph& g) {
 void print_graph(graph& g) {
     std::cout << "=== GRAPH ===" << std::endl;
     for (auto&& e : g) {
-        std::cout << e.first << " -> " << e.second << std::endl;
+        std::cout << e.from << " -> " << e.to << std::endl;
     }
 }
 
