@@ -9,6 +9,7 @@
 #include <set>
 #include <tuple>
 #include <map>
+#include <chrono>
 
 using namespace std;
 
@@ -127,11 +128,17 @@ unsigned read_data(const string& filename, vector<vector<int>>& h, vector<vector
 }
 
 unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
+    auto start1 = chrono::steady_clock::now();
+
     vector<vector<int>> h2(h);
     unsigned sum = 0;
 
     map<vertex, int> m;
     int vertex_num = 0;
+
+    auto end1 = chrono::steady_clock::now();
+
+    cout << "\tinit :     \t" << chrono::duration_cast<chrono::microseconds>(end1 - start1).count() << " us. " << endl;
 
     /*
      * todo:
@@ -145,6 +152,8 @@ unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
 
     //todo найти способ находить неразрешимые случаи (на этапе создания графа или на этапе Краскала? скорее всего 1е)
 
+    auto start2 = chrono::steady_clock::now();
+
     for (auto&& r : h) {
         m.emplace(vertex(r[0], r[1]), vertex_num++);
     }
@@ -152,18 +161,49 @@ unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
         m.emplace(vertex(c[0], c[2]), vertex_num++);
     }
 
+    auto end2 = chrono::steady_clock::now();
+
+    cout << "\tfst v nums : \t" << chrono::duration_cast<chrono::microseconds>(end2 - start2).count() << " us. " << endl;
+
+
+
+    auto start3 = chrono::steady_clock::now();
+
+    long init = 0, t1 = 0, t2 = 0, t3 = 0, last = 0;
+
     for (int r = 0; r < h.size(); ++r) {
+
         for (int c = 0; c < v.size(); ++c) {
+            auto start_init = chrono::steady_clock::now();
+
             vertex top_h(h[r][0], h[r][1]);
             vertex top_v(v[c][0], v[c][2]);
 
             vertex cross(top_h.x, top_v.y);
+
+            auto end_init = chrono::steady_clock::now();
+
+            if (init < chrono::duration_cast<chrono::microseconds>(end_init - start_init).count()) {
+                init = chrono::duration_cast<chrono::microseconds>(end_init - start_init).count();
+            }
+
+
+            auto start_1 = chrono::steady_clock::now();
 
             if (cross.y >= top_h.y && cross.y <= h[r][2] && cross.x >= top_v.x && cross.x <= v[c][1]) {
                 sum++;
 
                 m.emplace(cross, vertex_num++);
             }
+
+            auto end_1 = chrono::steady_clock::now();
+
+            if (t1 < chrono::duration_cast<chrono::microseconds>(end_1 - start_1).count()) {
+                t1 = chrono::duration_cast<chrono::microseconds>(end_1 - start_1).count();
+            }
+
+
+            auto start_2 = chrono::steady_clock::now();
 
             //check if cross point lays on the horizontal word
             if (cross.y > top_h.y && cross.y < h[r][2] && cross.x >= top_v.x && cross.x <= v[c][1]) {
@@ -172,17 +212,60 @@ unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
                 h[r][1] = cross.y;
             }
 
+            auto end_2 = chrono::steady_clock::now();
+
+            if (t2 < chrono::duration_cast<chrono::microseconds>(end_2 - start_2).count()) {
+                t2 = chrono::duration_cast<chrono::microseconds>(end_2 - start_2).count();
+            }
+
+
+
+            auto start_3 = chrono::steady_clock::now();
+
             //check if cross point lays on the vertical word
             if (cross.x > top_v.x && cross.x < v[c][1] && cross.y >= top_h.y && cross.y <= h2[r][2]) {
                 //if it is, add new edge to the graph and move top side of the word to the cross point
                 g.emplace_back(edge(m.at(top_v), m.at(cross), edge_length(top_v, cross)));
                 v[c][0] = cross.x;
             }
+
+            auto end_3 = chrono::steady_clock::now();
+
+            if (t3 < chrono::duration_cast<chrono::microseconds>(end_3 - start_3).count()) {
+                t3 = chrono::duration_cast<chrono::microseconds>(end_3 - start_3).count();
+            }
         }
+
+        auto start_last = chrono::steady_clock::now();
+
         //after all vertical checked push final edge of the horizontal word
-        m.emplace(vertex(h[r][0], h[r][2]), vertex_num);
-        g.emplace_back(edge(m.at(vertex(h[r][0], h[r][1])), vertex_num++, edge_length(vertex(h[r][0], h[r][1]), vertex(h[r][0], h[r][2]))));
+        if (m.find(vertex(h[r][0], h[r][2])) == m.end()) {
+            m.emplace(vertex(h[r][0], h[r][2]), vertex_num);
+            g.emplace_back(edge(m.at(vertex(h[r][0], h[r][1])), vertex_num++, edge_length(vertex(h[r][0], h[r][1]), vertex(h[r][0], h[r][2]))));
+        } else {
+            g.emplace_back(edge(m.at(vertex(h[r][0], h[r][1])), m.at(vertex(h[r][0], h[r][2])),
+                    edge_length(vertex(h[r][0], h[r][1]), vertex(h[r][0], h[r][2]))));
+        }
+
+        auto end_last = chrono::steady_clock::now();
+
+        if (last < chrono::duration_cast<chrono::microseconds>(end_last - start_last).count()) {
+            last = chrono::duration_cast<chrono::microseconds>(end_last - start_last).count();
+        }
     }
+
+    auto end3 = chrono::steady_clock::now();
+
+    cout << "\t\tinner init:\t" << init << endl;
+    cout << "\t\tinner t1  :\t" << t1 << endl;
+    cout << "\t\tinner t2  :\t" << t2 << endl;
+    cout << "\t\tinner t3  :\t" << t3 << endl;
+    cout << "\t\tinner last  :\t" << last << endl;
+
+    cout << "\tmain loop : \t" << chrono::duration_cast<chrono::microseconds>(end3 - start3).count() << " us. " << endl;
+
+
+    auto start4 = chrono::steady_clock::now();
 
     for (int c = 0; c < v.size(); ++c) {
         //after all horizontal checked, push final edge of the vertical word
@@ -197,11 +280,15 @@ unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
 
     }
 
-    cout << "=== MAP === " << endl;
-    for (auto&& t : m) {
-        cout << t.first << " -> " << t.second << endl;
-    }
-    cout << endl;
+    auto end4 = chrono::steady_clock::now();
+
+    cout << "\tlast loop : \t" << chrono::duration_cast<chrono::microseconds>(end4 - start4).count() << " us. " << endl;
+
+//    cout << "=== MAP === " << endl;
+//    for (auto&& t : m) {
+//        cout << t.first << " -> " << t.second << endl;
+//    }
+//    cout << endl;
 
     return sum;
 }
@@ -233,10 +320,10 @@ unsigned kruskal(graph& g) {
     for (auto&& e : g) {
         if (dsu.find_set(e.from) != dsu.find_set(e.to)) {
             dsu.union_sets(e.from, e.to);
-//            cout << "\t(" << e.from << ", " << e.to << ") c = " << e.capacity << endl;
+//            cout << "\tTREE EDGE : (" << e.from << ", " << e.to << ") c = " << e.capacity << endl;
         } else {
             sum += e.capacity - 1;
-//            cout << "\t(" << e.from << ", " << e.to << ") c = " << e.capacity << endl;
+//            cout << "MISS EDGE : (" << e.from << ", " << e.to << ") c = " << e.capacity << endl;
         }
     }
 
@@ -261,9 +348,18 @@ void output_answer(string filename, int ans) {
 
 int main() {
 
+    chrono::steady_clock::time_point start1 = chrono::steady_clock::now();
+
     vector<vector<int>> h, v;
 
     unsigned score = read_data("input.txt", h, v);
+
+    chrono::steady_clock::time_point end1 = chrono::steady_clock::now();
+
+    cout << "reading data:   " << chrono::duration_cast<chrono::microseconds>(end1 - start1).count() << " us. " << endl;
+
+
+    chrono::steady_clock::time_point start2 = chrono::steady_clock::now();
 
     sort(h.begin(), h.end(), [](const vector<int>& lhs, const vector<int>& rhs) {
         return (lhs[0] == rhs[0] ? lhs[1] < rhs[1] : lhs[0] < rhs[0]);
@@ -272,13 +368,44 @@ int main() {
         return (lhs[2] == rhs[2] ? lhs[0] < rhs[0] : lhs[2] < rhs[2]);
     });
 
+    chrono::steady_clock::time_point end2 = chrono::steady_clock::now();
+
+    cout << "sorting:     \t" << chrono::duration_cast<chrono::microseconds>(end2 - start2).count() << " us. " << endl;
+
+
+
+    chrono::steady_clock::time_point start3 = chrono::steady_clock::now();
+
     graph g;
+    g.reserve(100000);
 
-    unsigned amount_crosses = parse(h, v, g);
+    int amount_crosses = parse(h, v, g);
 
-    unsigned redundant_length = kruskal(g);
+    chrono::steady_clock::time_point end3 = chrono::steady_clock::now();
 
-    output_answer("output.txt", score - amount_crosses - redundant_length);
+    cout << "parsing graph: \t" << chrono::duration_cast<chrono::microseconds>(end3 - start3).count() << " us. " << endl;
+
+
+
+    chrono::steady_clock::time_point start4 = chrono::steady_clock::now();
+
+    int redundant_length = kruskal(g);
+
+    chrono::steady_clock::time_point end4 = chrono::steady_clock::now();
+
+    cout << "kruskal:     \t" << chrono::duration_cast<chrono::microseconds>(end4 - start4).count() << " us. " << endl;
+
+
+
+    chrono::steady_clock::time_point start5 = chrono::steady_clock::now();
+
+    output_answer("output.txt", (redundant_length ? score - amount_crosses - redundant_length : -1));
+
+    chrono::steady_clock::time_point end5 = chrono::steady_clock::now();
+
+    cout << "printing data: \t" << chrono::duration_cast<chrono::microseconds>(end5 - start5).count() << " us. " << endl;
+
+    cout << "\noverall      : \t" << chrono::duration_cast<chrono::microseconds>(end5 - start1).count() << " us. " << endl;
 
     return 0;
 }
