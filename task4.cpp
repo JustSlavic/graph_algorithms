@@ -146,26 +146,18 @@ unsigned build_graph(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
             vertex top_h(h[r][0], h[r][1]);
             vertex top_v(v[c][0], v[c][2]);
             vertex cross(top_h.x, top_v.y);
-            int cross_num = 0;
 
             if (cross.y >= top_h.y && cross.y <= h[r][2] && cross.x >= top_v.x && cross.x <= v[c][1]) {
                 sum++;
-                cross_num = vertex_num++;
-            }
+                int cross_num = vertex_num++;
 
-            //check if cross point lays on the horizontal word
-            if (cross.y >= top_h.y && cross.y <= h[r][2] && cross.x >= top_v.x && cross.x <= v[c][1]) {
-                //if it is, add new edge to the graph and move left side of the word to the cross point
+                //add new edge to the graph and move left side of the word to the cross point
                 g.emplace_back(edge(h_nums[r], cross_num, edge_length(top_h, cross)));
                 h[r][1] = cross.y;
                 h_nums[r] = cross_num;
-            }
 
-            //check if cross point lays on the vertical word
-            if (cross.x >= top_v.x && cross.x <= v[c][1] && cross.y >= top_h.y && cross.y <= h2[r][2]) {
-                //if it is, add new edge to the graph and move top side of the word to the cross point
+                //add new edge to the graph and move top side of the word to the cross point
                 g.emplace_back(edge(v_nums[c], cross_num, edge_length(top_v, cross)));
-
                 v[c][0] = cross.x;
                 v_nums[c] = cross_num;
             }
