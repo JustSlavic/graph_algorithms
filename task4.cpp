@@ -11,7 +11,8 @@
 #include <map>
 #include <chrono>
 
-#define time_checking
+//#define time_checking
+//#define vertex_print
 
 using namespace std;
 
@@ -57,9 +58,9 @@ struct DSU {
     vector<int> parent;
     vector<int> rank;
 
-    DSU() {
-        parent.resize(100000000, -1);
-        rank.resize(100000000, -1);
+    DSU(size_t _max_size) {
+        parent.resize(_max_size, -1);
+        rank.resize(_max_size, -1);
     }
 
     void make_set(const int& x) {
@@ -137,8 +138,10 @@ unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
     vector<vector<int>> h2(h);
     unsigned sum = 0;
 
-    map<vertex, int> m;
     int vertex_num = 0;
+
+    vector<int> h_nums(h.size());
+    vector<int> v_nums(v.size());
 
 #ifdef time_checking
     auto end1 = chrono::steady_clock::now();
@@ -146,11 +149,21 @@ unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
     auto start2 = chrono::steady_clock::now();
 #endif //time_checking
 
-    for (auto&& r : h) {
-        m.emplace(vertex(r[0], r[1]), vertex_num++);
+#ifdef vertex_print
+    cout << "=== TOP VERTEXES === " << endl;
+#endif //vertex_print
+
+    for (int r = 0; r < h.size(); ++r) {
+#ifdef vertex_print
+        cout << "\th[" << r << "] <- " << vertex_num << endl;
+#endif //vertex_print
+        h_nums[r] = vertex_num++;
     }
-    for (auto&& c : v) {
-        m.emplace(vertex(c[0], c[2]), vertex_num++);
+    for (int c = 0; c < v.size(); ++c) {
+#ifdef vertex_print
+        cout << "\tv[" << c << "] <- " << vertex_num << endl;
+#endif //vertex_print
+        v_nums[c] = vertex_num++;
     }
 
 #ifdef time_checking
@@ -159,6 +172,10 @@ unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
     auto start3 = chrono::steady_clock::now();
     long init = 0, t1 = 0, t2 = 0, t3 = 0, last = 0;
 #endif //time_checking
+
+#ifdef vertex_print
+    cout << "=== CROSSES ===" << endl;
+#endif //vertex_print
 
     for (int r = 0; r < h.size(); ++r) {
         for (int c = 0; c < v.size(); ++c) {
@@ -169,6 +186,7 @@ unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
             vertex top_h(h[r][0], h[r][1]);
             vertex top_v(v[c][0], v[c][2]);
             vertex cross(top_h.x, top_v.y);
+            int cross_num = 0;
 
 #ifdef time_checking
             auto end_init = chrono::steady_clock::now();
@@ -179,8 +197,12 @@ unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
 #endif //time_checking
 
             if (cross.y >= top_h.y && cross.y <= h[r][2] && cross.x >= top_v.x && cross.x <= v[c][1]) {
+#ifdef vertex_print
+                cout << "\t(" << cross.x << ", " << cross.y << ")" << endl;
+#endif //vertex_print
+
                 sum++;
-                m.emplace(cross, vertex_num++);
+                cross_num = vertex_num++;
             }
 
 #ifdef time_checking
@@ -192,10 +214,14 @@ unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
 #endif //time_checking
 
             //check if cross point lays on the horizontal word
-            if (cross.y > top_h.y && cross.y < h[r][2] && cross.x >= top_v.x && cross.x <= v[c][1]) {
+            if (cross.y >= top_h.y && cross.y <= h[r][2] && cross.x >= top_v.x && cross.x <= v[c][1]) {
                 //if it is, add new edge to the graph and move left side of the word to the cross point
-                g.emplace_back(edge(m.at(top_h), m.at(cross), edge_length(top_h, cross)));
+                g.emplace_back(edge(h_nums[r], cross_num, edge_length(top_h, cross)));
+#ifdef vertex_print
+                cout << "g <- (" << h_nums[r] << ", " << cross_num << ", " << edge_length(top_h, cross) << ")" << endl;
+#endif //vertex_print
                 h[r][1] = cross.y;
+                h_nums[r] = cross_num;
             }
 
 #ifdef time_checking
@@ -207,10 +233,15 @@ unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
 #endif //time_checking
 
             //check if cross point lays on the vertical word
-            if (cross.x > top_v.x && cross.x < v[c][1] && cross.y >= top_h.y && cross.y <= h2[r][2]) {
+            if (cross.x >= top_v.x && cross.x <= v[c][1] && cross.y >= top_h.y && cross.y <= h2[r][2]) {
                 //if it is, add new edge to the graph and move top side of the word to the cross point
-                g.emplace_back(edge(m.at(top_v), m.at(cross), edge_length(top_v, cross)));
+                g.emplace_back(edge(v_nums[c], cross_num, edge_length(top_v, cross)));
+#ifdef vertex_print
+                cout << "g <- (" << v_nums[c] << ", " << cross_num << ", " << edge_length(top_v, cross) << ")" << endl;
+#endif //vertex_print
+
                 v[c][0] = cross.x;
+                v_nums[c] = cross_num;
             }
 
 #ifdef time_checking
@@ -226,12 +257,11 @@ unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
 #endif //time_checking
 
         //after all vertical checked push final edge of the horizontal word
-        if (m.find(vertex(h[r][0], h[r][2])) == m.end()) {
-            m.emplace(vertex(h[r][0], h[r][2]), vertex_num);
-            g.emplace_back(edge(m.at(vertex(h[r][0], h[r][1])), vertex_num++, edge_length(vertex(h[r][0], h[r][1]), vertex(h[r][0], h[r][2]))));
-        } else {
-            g.emplace_back(edge(m.at(vertex(h[r][0], h[r][1])), m.at(vertex(h[r][0], h[r][2])),
-                    edge_length(vertex(h[r][0], h[r][1]), vertex(h[r][0], h[r][2]))));
+        if (h[r][1] != h[r][2]) { // if "tail" if left, add edge to graph
+#ifdef vertex_print
+            cout << "g <- (" << h_nums[r] << ", " << vertex_num << ", " << edge_length(vertex(h[r][0], h[r][1]), vertex(h[r][0], h[r][2])) << ")" << endl;
+#endif //vertex_print
+            g.emplace_back(edge(h_nums[r], vertex_num++, edge_length(vertex(h[r][0], h[r][1]), vertex(h[r][0], h[r][2]))));
         }
 
 #ifdef time_checking
@@ -256,15 +286,12 @@ unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
 
     for (int c = 0; c < v.size(); ++c) {
         //after all horizontal checked, push final edge of the vertical word
-        if (m.find(vertex(v[c][1], v[c][2])) == m.end()) {
-            m.emplace(vertex(v[c][1], v[c][2]), vertex_num);
-            g.emplace_back(edge(m.at(vertex(v[c][0], v[c][2])), vertex_num++,
-                    edge_length(vertex(v[c][0], v[c][2]), vertex(v[c][1], v[c][2]))));
-        } else {
-            g.emplace_back(edge(m.at(vertex(v[c][0], v[c][2])), m.at(vertex(v[c][1], v[c][2])),
-                    edge_length(vertex(v[c][0], v[c][2]), vertex(v[c][1], v[c][2]))));
+        if (v[c][0] != v[c][1]) { // if "tail" if left, add edge to graph
+#ifdef vertex_print
+            cout << "g <- (" << v_nums[c] << ", " << vertex_num << ", " << edge_length(vertex(v[c][0], v[c][2]), vertex(v[c][1], v[c][2])) << ")" << endl;
+#endif //vertex_print
+            g.emplace_back(edge(v_nums[c], vertex_num++, edge_length(vertex(v[c][0], v[c][2]), vertex(v[c][1], v[c][2]))));
         }
-
     }
 
 #ifdef time_checking
@@ -280,7 +307,7 @@ unsigned kruskal(graph& g) {
         return e1.capacity < e2.capacity;
     });
 
-    DSU dsu;
+    DSU dsu(2*g.size());
     for (auto&& e : g) {
         dsu.make_set(e.from);
         dsu.make_set(e.to);
@@ -363,6 +390,7 @@ int main() {
 #endif //time_checking
 
     output_answer("output.txt", (redundant_length ? score - amount_crosses - redundant_length : -1));
+//    output_answer("output.txt", -1);
 
 #ifdef time_checking
     chrono::steady_clock::time_point end5 = chrono::steady_clock::now();
