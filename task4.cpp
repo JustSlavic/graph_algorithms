@@ -67,7 +67,8 @@ struct DSU {
 
     int find_set(int x) {
         while (parent[x] != x) {
-            x = parent[x] = parent[parent[x]]; // эвристика сжатия пути
+            // heuristic of shrinking of path
+            x = parent[x] = parent[parent[x]];
         }
 
         return x;
@@ -209,7 +210,7 @@ unsigned kruskal(graph& g) {
     return sum;
 }
 
-void print_graph(graph& g) {
+void print_graph(const graph& g) {
     std::cout << "=== GRAPH ===" << std::endl;
     for (auto&& e : g) {
         std::cout << e.from << " -> " << e.to << std::endl;
@@ -217,7 +218,7 @@ void print_graph(graph& g) {
 }
 
 
-void output_answer(string filename, int ans) {
+void output_answer(const string& filename, int ans) {
     ofstream ofs(filename);
 
     ofs << ans << endl;
@@ -239,7 +240,7 @@ int main() {
     });
 
     graph g;
-    g.reserve(10000000);
+    g.reserve(h.size() * v.size());
 
     int amount_crosses = parse(h, v, g);
 
