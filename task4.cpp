@@ -127,7 +127,6 @@ unsigned read_data(const string& filename, vector<vector<int>>& h, vector<vector
 }
 
 unsigned build_graph(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
-    vector<vector<int>> h2(h);
     unsigned sum = 0;
     int vertex_num = 0;
 
