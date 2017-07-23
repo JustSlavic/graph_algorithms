@@ -26,7 +26,7 @@ struct edge {
     int capacity;
     edge(int u, int v, int c) :from(u), to(v), capacity(c) {}
 };
-typedef vector<edge> graph;
+using graph = vector<edge>;
 
 ostream& operator<<(ostream& os, const vertex& v) {
     return os << "(" << v.x << ", " << v.y << ")";
