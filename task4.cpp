@@ -163,14 +163,16 @@ unsigned build_graph(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
         }
 
         //after all vertical checked push final edge of the horizontal word
-        if (h[r][1] != h[r][2]) { // if "tail" if left, add edge to graph
+        if (h[r][1] != h[r][2]) {
+            // if "tail" is left, add edge to graph
             g.emplace_back(edge(h_nums[r], vertex_num++, edge_length(vertex(h[r][0], h[r][1]), vertex(h[r][0], h[r][2]))));
         }
     }
 
     for (int c = 0; c < v.size(); ++c) {
         //after all horizontal checked, push final edge of the vertical word
-        if (v[c][0] != v[c][1]) { // if "tail" if left, add edge to graph
+        if (v[c][0] != v[c][1]) {
+            // if "tail" is left, add edge to graph
             g.emplace_back(edge(v_nums[c], vertex_num++, edge_length(vertex(v[c][0], v[c][2]), vertex(v[c][1], v[c][2]))));
         }
     }
