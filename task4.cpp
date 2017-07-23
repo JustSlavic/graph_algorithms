@@ -126,7 +126,7 @@ unsigned read_data(const string& filename, vector<vector<int>>& h, vector<vector
     return sum;
 }
 
-unsigned parse(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
+unsigned build_graph(vector<vector<int>>& h, vector<vector<int>>& v, graph& g) {
     vector<vector<int>> h2(h);
     unsigned sum = 0;
     int vertex_num = 0;
@@ -242,11 +242,11 @@ int main() {
     graph g;
     g.reserve(h.size() * v.size());
 
-    int amount_crosses = parse(h, v, g);
+    int crosses = build_graph(h, v, g);
 
     int redundant_length = kruskal(g);
 
-    output_answer("output.txt", (redundant_length ? score - amount_crosses - redundant_length : -1));
+    output_answer("output.txt", (redundant_length ? score - crosses - redundant_length : -1));
 
     return EXIT_SUCCESS;
 }
