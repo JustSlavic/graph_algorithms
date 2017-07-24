@@ -53,6 +53,31 @@ void read_data(const string& filename, vector<line>& lines, point& home1, point&
     ifs.close();
 }
 
+void build_graph(const vector<line>& lines) {
+    const double eps = 10e-6;
+    double cross_x, cross_y;
+
+    for (int i = 0; i < lines.size(); ++i) {
+        for (int j = i+1; j < lines.size(); ++j) {
+            const int& x1 = lines[i].p1.x; const int& y1 = lines[i].p1.y;
+            const int& x2 = lines[i].p2.x; const int& y2 = lines[i].p2.y;
+            const int& x3 = lines[j].p1.x; const int& y3 = lines[j].p1.y;
+            const int& x4 = lines[j].p2.x; const int& y4 = lines[j].p2.y;
+
+            int divider = (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4);
+
+            if (abs(divider) < eps) {
+                cout << "lines " << lines[i] << " and " << lines[j] << " is parallel" << endl;
+            } else {
+                cross_x = ((x1*y2 - y1*x2)*(x3 - x4) - (x1 - x2)*(x3*y4 - y3*x4)) / divider;
+                cross_y = ((x1*y2 - y1*x2)*(y3 - y4) - (y1 - y2)*(x3*y4 - y3*x4)) / divider;
+
+                cout << "cross = (" << cross_x << ", " << cross_y << ")" << endl;
+            }
+        }
+    }
+}
+
 int main() {
 
     vector<line> roads;
@@ -64,6 +89,10 @@ int main() {
     for (auto&& t : roads) {
          cout << t << endl;
     }
+    cout << "home1 = " << home1 << endl;
+    cout << "home2 = " << home2 << endl;
+
+    build_graph(roads);
 
     return 0;
 }
