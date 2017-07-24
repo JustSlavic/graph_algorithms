@@ -3,12 +3,16 @@
 //
 
 #include <iostream>
+#include <vector>
+#include <fstream>
 
 using namespace std;
 
 struct point {
-    int x, y;
+    int x = 0;
+    int y = 0;
 
+    point () {}
     point (const int& _x, const int& _y) :x(_x), y(_y) {}
 };
 
@@ -21,6 +25,14 @@ struct line {
     }
     line(const point& _p1, const point& _p2) :p1(_p1), p2(_p2) {}
 };
+
+ostream& operator<<(ostream& os, const point& p) {
+    return os << "(" << p.x << ", " << p.y << ")";
+}
+
+ostream& operator<<(ostream& os, const line& l) {
+    return os << l.p1 << " --- " << l.p2;
+}
 
 void read_data(const string& filename, vector<line>& lines, point& home1, point& home2) {
     ifstream ifs(filename);
@@ -43,7 +55,15 @@ void read_data(const string& filename, vector<line>& lines, point& home1, point&
 
 int main() {
 
-    cout << "Hello, World!" << endl;
+    vector<line> roads;
+    point home1, home2;
+
+    read_data("input.txt", roads, home1, home2);
+
+    cout << "=== DATA ===" << endl;
+    for (auto&& t : roads) {
+         cout << t << endl;
+    }
 
     return 0;
 }
