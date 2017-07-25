@@ -7,6 +7,9 @@
 #include <fstream>
 #include <cmath>
 #include <algorithm>
+#include <queue>
+#include <functional>
+#include <iomanip>
 
 using namespace std;
 
@@ -51,15 +54,63 @@ struct line {
 };
 
 struct edge {
-    int v = -1;
+    int to = -1;
     double c = 0;
 
     edge() {}
 
-    edge(const int& _vertex, const double& _capacity) :v(_vertex), c(_capacity) {}
+    edge(const int& _vertex, const double& _capacity) :to(_vertex), c(_capacity) {}
 };
 
 using graph = vector<vector<edge>>;
+
+struct pr_queue {
+    using value = int;
+    using key = double;
+    using queue_pair = pair<value, key>;
+
+    vector<queue_pair> v;
+    std::function<bool(const queue_pair&, const queue_pair&)> cmp =
+            [](const queue_pair& lhs, const queue_pair& rhs) { return lhs.second > rhs.second; };
+
+    void push(const queue_pair& x) {
+        v.push_back(x);
+        push_heap(v.begin(), v.end(), cmp);
+    }
+
+    void push(const value& val, const key& k) {
+        push(make_pair(val, k));
+    }
+
+    int top() {
+        return v.front().first;
+    }
+
+    void pop() {
+        pop_heap(v.begin(), v.end(), cmp);
+        v.pop_back();
+    }
+
+    bool empty() {
+        return v.empty();
+    }
+
+    void decrease_key(const queue_pair& x) {
+        for (auto& t : v) {
+            if (t.first == x.first) {
+                t.second = x.second;
+                make_heap(v.begin(), v.end(), cmp);
+                return;
+            }
+        }
+
+        push(x);
+    }
+
+    void decrease_key(const value& val, const key& k) {
+        decrease_key(make_pair(val, k));
+    }
+};
 
 ostream& operator<<(ostream& os, const point& p) {
     return os << "(" << p.x << ", " << p.y << ")";
@@ -168,26 +219,42 @@ graph build_graph(vector<line> lines) {
                 const double& x3 = segments[j].p1.x; const double& y3 = segments[j].p1.y;
                 const double& x4 = segments[j].p2.x; const double& y4 = segments[j].p2.y;
 
-                double vx1, vy1, vx2, vy2;
+                double vx1 = 0, vy1 = 0, vx2 = 0, vy2 = 0;
 
+                /*
+                 *  if     v1       v2
+                 *      ------> * ------>
+                 */
                 if (segments[i].p2 == segments[j].p1) {
                     vx1 = x2-x1;
                     vy1 = y2-y1;
                     vx2 = x4-x3;
                     vy2 = y4-y3;
                 }
+                /*
+                 *  if     v1        v2
+                 *      ------> * <------
+                 */
                 if (segments[i].p2 == segments[j].p2) {
                     vx1 = x2-x1;
                     vy1 = y2-y1;
                     vx2 = x3-x4;
                     vy2 = y3-y4;
                 }
+                /*
+                 *  if     v1       v2
+                 *      <------ * ------>
+                 */
                 if (segments[i].p1 == segments[j].p1) {
                     vx1 = x1-x2;
                     vy1 = y1-y2;
                     vx2 = x4-x3;
                     vy2 = y4-y3;
                 }
+                /*
+                 *  if     v1        v2
+                 *      <------ * <------
+                 */
                 if (segments[i].p1 == segments[j].p2) {
                     vx1 = x1-x2;
                     vy1 = y1-y2;
@@ -209,7 +276,7 @@ graph build_graph(vector<line> lines) {
     for (int i = 0; i < g.size(); ++i) {
         cout << i << ": ";
         for (auto&& u : g[i]) {
-            cout << "(" << u.v << ", " << u.c << ") ";
+            cout << "(" << u.to << ", " << setprecision(2) << u.c << ") ";
         }
         cout << endl;
     }
@@ -217,8 +284,35 @@ graph build_graph(vector<line> lines) {
     return g;
 }
 
-void dijkstra(const graph& g) {
+void upgrade_graph(const graph& g) {
+    graph upgraded_graph(2*g.size());
 
+
+}
+
+vector<int> dijkstra(const graph& g, const int& s) {
+    vector<double> d(g.size(), INT32_MAX);
+    d[s] = 0;
+    vector<int> p(g.size(), -1);
+
+    pr_queue q;
+    q.push(s, d[s]);
+
+    while (!q.empty()) {
+        int v = q.top();
+        q.pop();
+
+        for (auto&& neighbour : g[v]) {
+            if (d[neighbour.to] > d[v] + neighbour.c) {
+                d[neighbour.to] = d[v] + neighbour.c;
+                p[neighbour.to] = v;
+
+                q.decrease_key(neighbour.to, d[neighbour.to]);
+            }
+        }
+    }
+
+    return p;
 }
 
 int main() {
@@ -237,6 +331,13 @@ int main() {
 
     cout << endl;
     graph g = build_graph(roads);
+
+    vector<int> parents = dijkstra(g, 0);
+
+    cout << "=== PARENTS ===" << endl;
+    for (int i = 0; i < parents.size(); ++i) {
+        cout << i << ": " << parents[i] << endl;
+    }
 
     return 0;
 }
