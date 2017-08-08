@@ -64,42 +64,41 @@ struct edge {
 
 using graph = vector<vector<edge>>;
 
+template <typename Key, typename Value>
 struct pr_queue {
-    using value = int;
-    using key = double;
-    using queue_pair = pair<value, key>;
+    using queue_pair = pair<Key, Value>;
 
-    vector<queue_pair> v;
+    vector<queue_pair> container;
     std::function<bool(const queue_pair&, const queue_pair&)> cmp =
-            [](const queue_pair& lhs, const queue_pair& rhs) { return lhs.second > rhs.second; };
+            [](const queue_pair& lhs, const queue_pair& rhs) { return lhs.first > rhs.first; };
 
     void push(const queue_pair& x) {
-        v.push_back(x);
-        push_heap(v.begin(), v.end(), cmp);
+        container.push_back(x);
+        push_heap(container.begin(), container.end(), cmp);
     }
 
-    void push(const value& val, const key& k) {
-        push(make_pair(val, k));
+    void push(const Key& k, const Value& val) {
+        push(make_pair(k, val));
     }
 
     int top() {
-        return v.front().first;
+        return container.front().second;
     }
 
     void pop() {
-        pop_heap(v.begin(), v.end(), cmp);
-        v.pop_back();
+        pop_heap(container.begin(), container.end(), cmp);
+        container.pop_back();
     }
 
     bool empty() {
-        return v.empty();
+        return container.empty();
     }
 
     void decrease_key(const queue_pair& x) {
-        for (auto& t : v) {
-            if (t.first == x.first) {
-                t.second = x.second;
-                make_heap(v.begin(), v.end(), cmp);
+        for (auto& t : container) {
+            if (t.second == x.second) {
+                t.first = x.first;
+                make_heap(container.begin(), container.end(), cmp);
                 return;
             }
         }
@@ -107,8 +106,8 @@ struct pr_queue {
         push(x);
     }
 
-    void decrease_key(const value& val, const key& k) {
-        decrease_key(make_pair(val, k));
+    void decrease_key(const Key& k, const Value& val) {
+        decrease_key(make_pair(k, val));
     }
 };
 
@@ -291,12 +290,12 @@ void upgrade_graph(const graph& g) {
 }
 
 vector<int> dijkstra(const graph& g, const int& s) {
-    vector<double> d(g.size(), INT32_MAX);
+    vector<double> d(g.size(), INFINITY);
     d[s] = 0;
     vector<int> p(g.size(), -1);
 
-    pr_queue q;
-    q.push(s, d[s]);
+    pr_queue<double, int> q;
+    q.push(d[s], s);
 
     while (!q.empty()) {
         int v = q.top();
@@ -307,7 +306,7 @@ vector<int> dijkstra(const graph& g, const int& s) {
                 d[neighbour.to] = d[v] + neighbour.c;
                 p[neighbour.to] = v;
 
-                q.decrease_key(neighbour.to, d[neighbour.to]);
+                q.decrease_key(d[neighbour.to], neighbour.to);
             }
         }
     }
