@@ -46,6 +46,10 @@ struct line {
         }
     }
 
+    bool contains(const point& p) const {
+        return ((p.x - p1.x)*(p2.y - p1.y) - (p.y - p1.y)*(p2.x - p1.x)) < eps;
+    }
+
     bool contains_in_rectangle(const point& p) const {
         return number_between(p.x, p1.x, p2.x) && number_between(p.y, p1.y, p2.y);
     }
@@ -153,7 +157,8 @@ void read_data(const string& filename, vector<line>& lines, point& home1, point&
  *  the way I link vertices is given below
  */
 
-graph build_graph(vector<line> lines) {
+// lines in will be destroyed during building, so I copy it
+graph build_graph(vector<line> lines, const point& home1, const point& home2) {
     vector<line> segments;
     vector<vector<point>> intersections(lines.size());
 
@@ -214,7 +219,7 @@ graph build_graph(vector<line> lines) {
     cout << endl;
 
     const unsigned n = static_cast<unsigned>(segments.size());
-    graph g(n*2);
+    graph g(n*2 + 2);
 
     for (int i = 0; i < n; ++i) {
         for (int j = i + 1; j < n; ++j) {
@@ -318,6 +323,20 @@ graph build_graph(vector<line> lines) {
                 }
             }
         }
+
+        if (segments[i].contains(home1) && segments[i].contains_in_rectangle(home1)) {
+            g[2*n].emplace_back(edge(i, 0));
+            g[i].emplace_back(edge(2*n, 0));
+            g[2*n].emplace_back(edge(n + i, 0));
+            g[n + i].emplace_back(2*n, 0);
+        }
+
+        if (segments[i].contains(home2) && segments[i].contains_in_rectangle(home2)) {
+            g[2*n + 1].emplace_back(edge(i, 0));
+            g[i].emplace_back(2*n + 1, 0);
+            g[2*n + 1].emplace_back(edge(n + i, 0));
+            g[n + i].emplace_back(2*n + 1, 0);
+        }
     }
 
     cout << "=== GRAPH ===" << endl;
@@ -372,9 +391,9 @@ int main() {
     cout << "home2 = " << home2 << endl;
 
     cout << endl;
-    graph g = build_graph(roads);
+    graph g = build_graph(roads, home1, home2);
 
-    vector<int> parents = dijkstra(g, 6);
+    vector<int> parents = dijkstra(g, static_cast<int>(g.size()-2));
 
     cout << "=== PARENTS ===" << endl;
     for (int i = 0; i < parents.size(); ++i) {
