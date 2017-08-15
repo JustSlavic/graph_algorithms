@@ -144,6 +144,15 @@ void read_data(const string& filename, vector<line>& lines, point& home1, point&
     ifs.close();
 }
 
+/*
+ * the idea in build graph is
+ *  1. make segments of the lines vertices
+ *  2. separate each vertex to 2 individual vertices
+ *  3. link them in a way all paths persist, and you can't turn for 360 degrees
+ *
+ *  the way I link vertices is given below
+ */
+
 graph build_graph(vector<line> lines) {
     vector<line> segments;
     vector<vector<point>> intersections(lines.size());
@@ -321,12 +330,6 @@ graph build_graph(vector<line> lines) {
     }
 
     return g;
-}
-
-void upgrade_graph(const graph& g) {
-    graph upgraded_graph(2*g.size());
-
-
 }
 
 vector<int> dijkstra(const graph& g, const int& s) {
