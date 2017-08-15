@@ -13,6 +13,8 @@
 
 using namespace std;
 
+const double eps = 10e-6;
+
 struct point {
     double x = 0;
     double y = 0;
@@ -22,34 +24,30 @@ struct point {
     point (const double& _x, const double& _y) :x(_x), y(_y) {}
 };
 
+double distance(const point& lhs, const point& rhs) {
+    return sqrt((lhs.x - rhs.x)*(lhs.x - rhs.x) + (lhs.y - rhs.y)*(lhs.y - rhs.y));
+}
+
 struct line {
     point p1, p2;
 
     line(const double& _x1, const double& _y1, const double& _x2, const double& _y2) {
         p1 = point(_x1, _y1);
         p2 = point(_x2, _y2);
-
-        direct();
     }
 
-    line(const point& _p1, const point& _p2) :p1(_p1), p2(_p2) {
-        direct();
+    line(const point& _p1, const point& _p2) :p1(_p1), p2(_p2) {}
+
+    bool number_between(double n, double l_bound, double r_bound) const {
+        if (l_bound < r_bound) {
+            return n >= l_bound && n <= r_bound;
+        } else {
+            return n <= l_bound && n >= r_bound;
+        }
     }
 
     bool contains_in_rectangle(const point& p) const {
-        return p.x >= p1.x && p.x <= p2.x && p.y >= p1.y && p.y <= p2.y;
-    }
-
-    void direct() {
-        if (p1.x == p2.x) {
-            if (p1.y > p2.y) {
-                swap(p1, p2);
-            }
-        } else {
-            if (p1.x > p2.x) {
-                swap(p1, p2);
-            }
-        }
+        return number_between(p.x, p1.x, p2.x) && number_between(p.y, p1.y, p2.y);
     }
 };
 
@@ -112,7 +110,7 @@ struct pr_queue {
 };
 
 ostream& operator<<(ostream& os, const point& p) {
-    return os << "(" << p.x << ", " << p.y << ")";
+    return os << setprecision(2) << "(" << p.x << ", " << p.y << ")";
 }
 
 ostream& operator<<(ostream& os, const line& l) {
@@ -120,7 +118,11 @@ ostream& operator<<(ostream& os, const line& l) {
 }
 
 bool operator==(const point& lhs, const point& rhs) {
-    return lhs.x == rhs.x && lhs.y == rhs.y;
+    return fabs(lhs.x - rhs.x) < eps && fabs(lhs.y - rhs.y) < eps;
+}
+
+bool operator!=(const point& lhs, const point& rhs) {
+    return !(lhs == rhs);
 }
 
 void read_data(const string& filename, vector<line>& lines, point& home1, point& home2) {
@@ -143,14 +145,10 @@ void read_data(const string& filename, vector<line>& lines, point& home1, point&
 }
 
 graph build_graph(vector<line> lines) {
-    const double eps = 10e-6;
-    double cross_x, cross_y;
-
     vector<line> segments;
+    vector<vector<point>> intersections(lines.size());
 
     for (int i = 0; i < lines.size(); ++i) {
-        vector<point> segment_ends;
-
         for (int j = 0; j < lines.size(); ++j) {
             const double& x1 = lines[i].p1.x; const double& y1 = lines[i].p1.y;
             const double& x2 = lines[i].p2.x; const double& y2 = lines[i].p2.y;
@@ -159,45 +157,45 @@ graph build_graph(vector<line> lines) {
 
             double divider = (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4);
 
-            if (fabs(divider) < eps) {
-                cout << "lines " << lines[i] << " and " << lines[j] << " are parallel" << endl << endl;
-            } else {
-                cross_x = ((x1*y2 - y1*x2)*(x3 - x4) - (x1 - x2)*(x3*y4 - y3*x4)) / divider;
-                cross_y = ((x1*y2 - y1*x2)*(y3 - y4) - (y1 - y2)*(x3*y4 - y3*x4)) / divider;
+            if (fabs(divider) >= eps) {
+                double cross_x = ((x1*y2 - y1*x2)*(x3 - x4) - (x1 - x2)*(x3*y4 - y3*x4)) / divider;
+                double cross_y = ((x1*y2 - y1*x2)*(y3 - y4) - (y1 - y2)*(x3*y4 - y3*x4)) / divider;
 
-                if (lines[i].contains_in_rectangle(point(cross_x, cross_y)) &&
-                        lines[j].contains_in_rectangle(point(cross_x, cross_y))) {
-                    segment_ends.emplace_back(point(cross_x, cross_y));
+                point cross = point(cross_x, cross_y);
 
-                    cout << "cross = (" << cross_x << ", " << cross_y << ")" << endl;
-
-                    const double vx1 = x2 - x1;
-                    const double vy1 = y2 - y1;
-                    const double vx2 = x4 - x3;
-                    const double vy2 = y4 - y3;
-
-                    const double cos_alpha = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
-                    cout << "cos(alpha) = " << cos_alpha << endl;
-                    cout << "measure of angle = " << 1 - cos_alpha << endl << endl;
+                if (lines[i].contains_in_rectangle(cross) && lines[j].contains_in_rectangle(cross)) {
+                    intersections[i].emplace_back(cross);
                 }
             }
         }
+    }
 
-        sort(segment_ends.begin(), segment_ends.end(), [](const point& lhs, const point& rhs) {
-            return (lhs.x == rhs.x ? lhs.y < rhs.y : lhs.x < rhs.x);
-        });
-
-        cout << "=== SEG ENDS of " << lines[i] << endl;
-        for (auto&& p : segment_ends) {
-            cout << "\t" << p << endl;
-            segments.emplace_back(line(lines[i].p1, p));
-            lines[i].p1 = p;
+    cout << "=== ALL CROSSES ===" << endl;
+    for (int i = 0; i < intersections.size(); ++i) {
+        cout << i << ":\t";
+        for (auto&& p : intersections[i]) {
+            cout << p << " ";
         }
         cout << endl;
     }
 
-    for (auto&& l : lines) {
-        segments.emplace_back(l);
+    for (int i = 0; i < lines.size(); ++i) {
+        std::function<bool(const point&, const point&)> cmp =
+                [&lines, &i](const point& lhs, const point& rhs) -> bool {
+                    return distance(lines[i].p1, lhs) < distance(lines[i].p1, rhs);
+                };
+
+        sort(intersections[i].begin(), intersections[i].end(), cmp);
+
+        for (auto&& intersect_point : intersections[i]) {
+            if (lines[i].p1 != intersect_point) {
+                segments.emplace_back(line(lines[i].p1, intersect_point));
+                lines[i].p1 = intersect_point;
+            }
+        }
+
+        if (lines[i].p1 != lines[i].p2)
+            segments.emplace_back(lines[i]);
     }
 
     cout << "=== SEGMENTS ===" << endl;
@@ -206,10 +204,11 @@ graph build_graph(vector<line> lines) {
     }
     cout << endl;
 
-    graph g(segments.size());
+    const unsigned n = static_cast<unsigned>(segments.size());
+    graph g(n*2);
 
-    for (int i = 0; i < segments.size(); ++i) {
-        for (int j = 0; j < segments.size(); ++j) {
+    for (int i = 0; i < n; ++i) {
+        for (int j = i + 1; j < n; ++j) {
             if (i != j && (segments[i].contains_in_rectangle(segments[j].p1) ||
                     segments[i].contains_in_rectangle(segments[j].p2))) {
 
@@ -223,50 +222,91 @@ graph build_graph(vector<line> lines) {
                 /*
                  *  if     v1       v2
                  *      ------> * ------>
+                 *
+                 *  then
+                 *
+                 *      v1             v2
+                 *    | fst |  --->  | fst |
+                 *    | snd |  <---  | snd |
+                 *
                  */
                 if (segments[i].p2 == segments[j].p1) {
                     vx1 = x2-x1;
                     vy1 = y2-y1;
                     vx2 = x4-x3;
                     vy2 = y4-y3;
+
+                    const double cos_alpha = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
+
+                    g[i].emplace_back(edge(j, 1 - cos_alpha));
+                    g[n + j].emplace_back(edge(n + i, 1 - cos_alpha));
                 }
                 /*
                  *  if     v1        v2
                  *      ------> * <------
+                 *
+                 *  then
+                 *
+                 *      v1             v2
+                 *    | fst |  --->  | snd |
+                 *    | snd |  <---  | fst |
+                 *
                  */
                 if (segments[i].p2 == segments[j].p2) {
                     vx1 = x2-x1;
                     vy1 = y2-y1;
                     vx2 = x3-x4;
                     vy2 = y3-y4;
+
+                    const double cos_alpha = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
+
+                    g[i].emplace_back(edge(n + j, 1 - cos_alpha));
+                    g[j].emplace_back(edge(n + i, 1 - cos_alpha));
                 }
                 /*
                  *  if     v1       v2
                  *      <------ * ------>
+                 *
+                 *  then
+                 *
+                 *       v1             v2
+                 *     | snd |  --->  | fst |
+                 *     | fst |  <---  | snd |
+                 *
                  */
                 if (segments[i].p1 == segments[j].p1) {
                     vx1 = x1-x2;
                     vy1 = y1-y2;
                     vx2 = x4-x3;
                     vy2 = y4-y3;
+
+                    const double cos_alpha = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
+
+                    g[n + i].emplace_back(edge(j, 1 - cos_alpha));
+                    g[n + j].emplace_back(edge(i, 1 - cos_alpha));
                 }
                 /*
                  *  if     v1        v2
                  *      <------ * <------
+                 *
+                 *  then
+                 *
+                 *        v1             v2
+                 *      | snd |  --->  | snd |
+                 *      | fst |  <---  | fst |
+                 *
                  */
                 if (segments[i].p1 == segments[j].p2) {
                     vx1 = x1-x2;
                     vy1 = y1-y2;
                     vx2 = x3-x4;
                     vy2 = y3-y4;
+
+                    const double cos_alpha = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
+
+                    g[n + i].emplace_back(edge(n + j, 1 - cos_alpha));
+                    g[j].emplace_back(edge(i, 1 - cos_alpha));
                 }
-
-                const double cos_alpha = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
-                cout << "\t\tangle(" << i << ", " << j << ") <- ";
-                cout << "cos(alpha) = " << cos_alpha << "\t";
-                cout << "measure of angle = " << 1 - cos_alpha << endl << endl;
-
-                g[i].emplace_back(edge(j, 1 - cos_alpha));
             }
         }
     }
@@ -275,7 +315,7 @@ graph build_graph(vector<line> lines) {
     for (int i = 0; i < g.size(); ++i) {
         cout << i << ": ";
         for (auto&& u : g[i]) {
-            cout << "(" << u.to << ", " << setprecision(2) << u.c << ") ";
+            cout << "(" << u.to << ", " << setprecision(2) << (u.c < eps ? 0 : u.c) << ") ";
         }
         cout << endl;
     }
@@ -331,12 +371,12 @@ int main() {
     cout << endl;
     graph g = build_graph(roads);
 
-    vector<int> parents = dijkstra(g, 0);
-
-    cout << "=== PARENTS ===" << endl;
-    for (int i = 0; i < parents.size(); ++i) {
-        cout << i << ": " << parents[i] << endl;
-    }
+//    vector<int> parents = dijkstra(g, 0);
+//
+//    cout << "=== PARENTS ===" << endl;
+//    for (int i = 0; i < parents.size(); ++i) {
+//        cout << i << ": " << parents[i] << endl;
+//    }
 
     return 0;
 }
