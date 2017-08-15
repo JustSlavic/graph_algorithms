@@ -14,6 +14,7 @@
 using namespace std;
 
 const double eps = 10e-6;
+const double pi = 3.14159265359;
 
 struct point {
     double x = 0;
@@ -250,10 +251,10 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
                     vx2 = x4-x3;
                     vy2 = y4-y3;
 
-                    const double cos_alpha = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
+                    const double angle = acos((vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2)))*180 / pi;
 
-                    g[i].emplace_back(edge(j, 1 - cos_alpha));
-                    g[n + j].emplace_back(edge(n + i, 1 - cos_alpha));
+                    g[i].emplace_back(edge(j, angle));
+                    g[n + j].emplace_back(edge(n + i, angle));
                 }
                 /*
                  *  if     v1        v2
@@ -272,10 +273,10 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
                     vx2 = x3-x4;
                     vy2 = y3-y4;
 
-                    const double cos_alpha = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
+                    const double angle = acos((vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2)))*180 / pi;
 
-                    g[i].emplace_back(edge(n + j, 1 - cos_alpha));
-                    g[j].emplace_back(edge(n + i, 1 - cos_alpha));
+                    g[i].emplace_back(edge(n + j, angle));
+                    g[j].emplace_back(edge(n + i, angle));
                 }
                 /*
                  *  if     v1       v2
@@ -294,10 +295,10 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
                     vx2 = x4-x3;
                     vy2 = y4-y3;
 
-                    const double cos_alpha = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
+                    const double angle = acos((vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2)))*180 / pi;
 
-                    g[n + i].emplace_back(edge(j, 1 - cos_alpha));
-                    g[n + j].emplace_back(edge(i, 1 - cos_alpha));
+                    g[n + i].emplace_back(edge(j, angle));
+                    g[n + j].emplace_back(edge(i, angle));
                 }
                 /*
                  *  if     v1        v2
@@ -316,10 +317,10 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
                     vx2 = x3-x4;
                     vy2 = y3-y4;
 
-                    const double cos_alpha = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
+                    const double angle = acos((vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2)))*180 / pi;
 
-                    g[n + i].emplace_back(edge(n + j, 1 - cos_alpha));
-                    g[j].emplace_back(edge(i, 1 - cos_alpha));
+                    g[n + i].emplace_back(edge(n + j, angle));
+                    g[j].emplace_back(edge(i, angle));
                 }
             }
         }
@@ -343,7 +344,7 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
     for (int i = 0; i < g.size(); ++i) {
         cout << i << ": ";
         for (auto&& u : g[i]) {
-            cout << "(" << u.to << ", " << setprecision(2) << (u.c < eps ? 0 : u.c) << ") ";
+            cout << "(" << u.to << ", " << setprecision(3) << (u.c < eps ? 0 : u.c) << ") ";
         }
         cout << endl;
     }
@@ -376,6 +377,26 @@ vector<int> dijkstra(const graph& g, const int& s) {
     return p;
 }
 
+double count_angle(const graph& g, const vector<int>& parents) {
+
+    int u = static_cast<int>(parents.size() - 1);
+    int parent = parents[u];
+    double angle = 0;
+
+    while (parent != parents.size() - 2) {
+        for (auto&& e : g[parent]) {
+            if (e.to==u) {
+                angle += e.c;
+                break;
+            }
+        }
+        u = parent;
+        parent = parents[u];
+    }
+
+    return angle;
+}
+
 int main() {
 
     vector<line> roads;
@@ -399,6 +420,9 @@ int main() {
     for (int i = 0; i < parents.size(); ++i) {
         cout << i << ": " << parents[i] << endl;
     }
+
+    cout << "=== ANGLE ===" << endl;
+    cout << "angle = " << count_angle(g, parents) << endl;
 
     return 0;
 }
