@@ -374,12 +374,12 @@ int main() {
     cout << endl;
     graph g = build_graph(roads);
 
-//    vector<int> parents = dijkstra(g, 0);
-//
-//    cout << "=== PARENTS ===" << endl;
-//    for (int i = 0; i < parents.size(); ++i) {
-//        cout << i << ": " << parents[i] << endl;
-//    }
+    vector<int> parents = dijkstra(g, 6);
+
+    cout << "=== PARENTS ===" << endl;
+    for (int i = 0; i < parents.size(); ++i) {
+        cout << i << ": " << parents[i] << endl;
+    }
 
     return 0;
 }
