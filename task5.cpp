@@ -251,7 +251,12 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
                     vx2 = x4-x3;
                     vy2 = y4-y3;
 
-                    const double angle = acos((vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2)))*180 / pi;
+                    double tmp_cos = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
+
+                    if (fabs(tmp_cos - 1) < eps)
+                        tmp_cos = 1;
+
+                    const double angle = acos(tmp_cos)*180 / pi;
 
                     g[i].emplace_back(edge(j, angle));
                     g[n + j].emplace_back(edge(n + i, angle));
@@ -273,7 +278,12 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
                     vx2 = x3-x4;
                     vy2 = y3-y4;
 
-                    const double angle = acos((vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2)))*180 / pi;
+                    double tmp_cos = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
+
+                    if (fabs(tmp_cos - 1) < eps)
+                        tmp_cos = 1;
+
+                    const double angle = acos(tmp_cos)*180 / pi;
 
                     g[i].emplace_back(edge(n + j, angle));
                     g[j].emplace_back(edge(n + i, angle));
@@ -295,7 +305,12 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
                     vx2 = x4-x3;
                     vy2 = y4-y3;
 
-                    const double angle = acos((vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2)))*180 / pi;
+                    double tmp_cos = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
+
+                    if (fabs(tmp_cos - 1) < eps)
+                        tmp_cos = 1;
+
+                    const double angle = acos(tmp_cos)*180 / pi;
 
                     g[n + i].emplace_back(edge(j, angle));
                     g[n + j].emplace_back(edge(i, angle));
@@ -317,7 +332,12 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
                     vx2 = x3-x4;
                     vy2 = y3-y4;
 
-                    const double angle = acos((vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2)))*180 / pi;
+                    double tmp_cos = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
+
+                    if (fabs(tmp_cos - 1) < eps)
+                        tmp_cos = 1;
+
+                    const double angle = acos(tmp_cos)*180 / pi;
 
                     g[n + i].emplace_back(edge(n + j, angle));
                     g[j].emplace_back(edge(i, angle));
