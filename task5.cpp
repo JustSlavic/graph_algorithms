@@ -153,7 +153,7 @@ void read_data(const string& filename, vector<line>& lines, point& home1, point&
 /*
  * the idea in build graph is
  *  1. vertices is the segments of lines
- *  2. divide each vertex to 2 individual vertices which I name fst and snd parts
+ *  2. divide each vertex to 2 individual vertices which I call fst and snd parts
  *      fst part numerating by i and snd numerating by (n + i) where n is amount of segments
  *  3. link them in a way all paths persist, and you can't turn for 360 degrees
  *
