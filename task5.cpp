@@ -25,8 +25,12 @@ struct point {
     point (const double& _x, const double& _y) :x(_x), y(_y) {}
 };
 
+double square_of_distance(const point& lhs, const point& rhs) {
+    return (lhs.x - rhs.x)*(lhs.x - rhs.x) + (lhs.y - rhs.y)*(lhs.y - rhs.y);
+}
+
 double distance(const point& lhs, const point& rhs) {
-    return sqrt((lhs.x - rhs.x)*(lhs.x - rhs.x) + (lhs.y - rhs.y)*(lhs.y - rhs.y));
+    return sqrt(square_of_distance(lhs, rhs));
 }
 
 struct line {
@@ -73,9 +77,7 @@ struct pr_queue {
 
     vector<queue_pair> container;
     std::function<bool(const queue_pair&, const queue_pair&)> cmp =
-            [](const queue_pair& lhs, const queue_pair& rhs) -> bool {
-        return lhs.first > rhs.first;
-    };
+            [](const queue_pair& lhs, const queue_pair& rhs) -> bool { return lhs.first > rhs.first; };
 
     void push(const queue_pair& x) {
         container.push_back(x);
@@ -195,7 +197,7 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
     for (int i = 0; i < lines.size(); ++i) {
         std::function<bool(const point&, const point&)> cmp =
                 [&lines, &i](const point& lhs, const point& rhs) -> bool {
-                    return distance(lines[i].p1, lhs) < distance(lines[i].p1, rhs);
+                    return square_of_distance(lines[i].p1, lhs) < square_of_distance(lines[i].p1, rhs);
                 };
 
         // sort intersect points in order of increasing distance from first point of the line
@@ -246,6 +248,7 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
 
                     double tmp_cos = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
 
+                    //in case if tmp_cos will be 1.00000000000002
                     if (tmp_cos > 1 && fabs(tmp_cos - 1) < eps)
                         tmp_cos = 1;
 
