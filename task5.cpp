@@ -48,7 +48,7 @@ struct line {
     }
 
     bool contains(const point& p) const {
-        return ((p.x - p1.x)*(p2.y - p1.y) - (p.y - p1.y)*(p2.x - p1.x)) < eps;
+        return fabs((p.x - p1.x)*(p2.y - p1.y) - (p.y - p1.y)*(p2.x - p1.x)) < eps;
     }
 
     bool contains_in_rectangle(const point& p) const {
