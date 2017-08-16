@@ -397,6 +397,14 @@ double count_angle(const graph& g, const vector<int>& parents) {
     return angle;
 }
 
+void output_answer(const string& filename, const double& answer) {
+    ofstream ofs(filename);
+
+    ofs << answer << endl;
+
+    ofs.close();
+}
+
 int main() {
 
     vector<line> roads;
@@ -421,8 +429,12 @@ int main() {
         cout << i << ": " << parents[i] << endl;
     }
 
+    double angle = count_angle(g, parents);
+
     cout << "=== ANGLE ===" << endl;
-    cout << "angle = " << count_angle(g, parents) << endl;
+    cout << "angle = " << angle << endl;
+
+    output_answer("output.txt", angle);
 
     return 0;
 }
