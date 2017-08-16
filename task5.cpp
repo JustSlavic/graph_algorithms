@@ -185,15 +185,6 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
         }
     }
 
-    cout << "=== ALL CROSSES ===" << endl;
-    for (int i = 0; i < intersections.size(); ++i) {
-        cout << i << ":\t";
-        for (auto&& p : intersections[i]) {
-            cout << p << " ";
-        }
-        cout << endl;
-    }
-
     for (int i = 0; i < lines.size(); ++i) {
         std::function<bool(const point&, const point&)> cmp =
                 [&lines, &i](const point& lhs, const point& rhs) -> bool {
@@ -212,12 +203,6 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
         if (lines[i].p1 != lines[i].p2)
             segments.emplace_back(lines[i]);
     }
-
-    cout << "=== SEGMENTS ===" << endl;
-    for (auto&& s : segments) {
-        cout << "\t" << s << endl;
-    }
-    cout << endl;
 
     const unsigned n = static_cast<unsigned>(segments.size());
     graph g(n*2 + 2);
@@ -360,15 +345,6 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
         }
     }
 
-    cout << "=== GRAPH ===" << endl;
-    for (int i = 0; i < g.size(); ++i) {
-        cout << i << ": ";
-        for (auto&& u : g[i]) {
-            cout << "(" << u.to << ", " << setprecision(3) << (u.c < eps ? 0 : u.c) << ") ";
-        }
-        cout << endl;
-    }
-
     return g;
 }
 
@@ -436,27 +412,11 @@ int main() {
 
     read_data("input.txt", roads, home1, home2);
 
-    cout << "=== DATA ===" << endl;
-    for (auto&& t : roads) {
-         cout << t << endl;
-    }
-    cout << "home1 = " << home1 << endl;
-    cout << "home2 = " << home2 << endl;
-
-    cout << endl;
     graph g = build_graph(roads, home1, home2);
 
     vector<int> parents = dijkstra(g, static_cast<int>(g.size()-2));
 
-    cout << "=== PARENTS ===" << endl;
-    for (int i = 0; i < parents.size(); ++i) {
-        cout << i << ": " << parents[i] << endl;
-    }
-
     double angle = count_angle(g, parents);
-
-    cout << "=== ANGLE ===" << endl;
-    cout << "angle = " << angle << endl;
 
     output_answer("output.txt", angle);
 
