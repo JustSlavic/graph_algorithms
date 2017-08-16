@@ -24,11 +24,11 @@ def visualize(segs, title):
     plt.axis([left-1, right+1, bottom-1, top+2])
     plt.show()    
 
-folder = 'cmake-build-debug/'
-fname = 'input.txt'
-segs, start, finish = load(folder + fname)
-plt.scatter([start[0], finish[0]], [start[1], finish[1]])
-visualize(segs, fname)
+# folder = 'cmake-build-debug/'
+# fname = 'input.txt'
+# segs, start, finish = load(folder + fname)
+# plt.scatter([start[0], finish[0]], [start[1], finish[1]])
+# visualize(segs, fname)
 
 folder = 'tests/input/'
 for i in range(1, 16):
