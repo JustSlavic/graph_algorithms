@@ -73,7 +73,9 @@ struct pr_queue {
 
     vector<queue_pair> container;
     std::function<bool(const queue_pair&, const queue_pair&)> cmp =
-            [](const queue_pair& lhs, const queue_pair& rhs) { return lhs.first > rhs.first; };
+            [](const queue_pair& lhs, const queue_pair& rhs) -> bool {
+        return lhs.first > rhs.first;
+    };
 
     void push(const queue_pair& x) {
         container.push_back(x);
@@ -106,6 +108,7 @@ struct pr_queue {
             }
         }
 
+        // if x is not found:
         push(x);
     }
 
@@ -151,8 +154,9 @@ void read_data(const string& filename, vector<line>& lines, point& home1, point&
 
 /*
  * the idea in build graph is
- *  1. make segments of the lines vertices
- *  2. separate each vertex to 2 individual vertices
+ *  1. vertices is the segments of lines
+ *  2. divide each vertex to 2 individual vertices which I name fst and snd parts
+ *      fst part numerating by i and snd numerating by (n + i) where n is amount of segments
  *  3. link them in a way all paths persist, and you can't turn for 360 degrees
  *
  *  the way I link vertices is given below
@@ -160,9 +164,9 @@ void read_data(const string& filename, vector<line>& lines, point& home1, point&
 
 // lines in will be destroyed during building, so I copy it
 graph build_graph(vector<line> lines, const point& home1, const point& home2) {
-    vector<line> segments;
     vector<vector<point>> intersections(lines.size());
 
+    // build vector of intersections for each line
     for (int i = 0; i < lines.size(); ++i) {
         for (int j = 0; j < lines.size(); ++j) {
             const double& x1 = lines[i].p1.x; const double& y1 = lines[i].p1.y;
@@ -185,12 +189,16 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
         }
     }
 
+    vector<line> segments;
+
+    // cut lines into segments
     for (int i = 0; i < lines.size(); ++i) {
         std::function<bool(const point&, const point&)> cmp =
                 [&lines, &i](const point& lhs, const point& rhs) -> bool {
                     return distance(lines[i].p1, lhs) < distance(lines[i].p1, rhs);
                 };
 
+        // sort intersect points in order of increasing distance from first point of the line
         sort(intersections[i].begin(), intersections[i].end(), cmp);
 
         for (auto&& intersect_point : intersections[i]) {
@@ -220,8 +228,8 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
                 double vx1 = 0, vy1 = 0, vx2 = 0, vy2 = 0;
 
                 /*
-                 *  if     v1       v2
-                 *      ------> * ------>
+                 *  if      v1           v2
+                 *      p1----->p2 * p1----->p2
                  *
                  *  then
                  *
@@ -247,8 +255,8 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
                     g[n + j].emplace_back(edge(n + i, angle));
                 }
                 /*
-                 *  if     v1        v2
-                 *      ------> * <------
+                 *  if      v1           v2
+                 *      p1----->p2 * p2<-----p1
                  *
                  *  then
                  *
@@ -274,8 +282,8 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
                     g[j].emplace_back(edge(n + i, angle));
                 }
                 /*
-                 *  if     v1       v2
-                 *      <------ * ------>
+                 *  if       v1         v2
+                 *      p2<-----p1 * p1----->p2
                  *
                  *  then
                  *
@@ -301,8 +309,8 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
                     g[n + j].emplace_back(edge(i, angle));
                 }
                 /*
-                 *  if     v1        v2
-                 *      <------ * <------
+                 *  if      v1           v2
+                 *      p2<-----p1 * p2<-----p1
                  *
                  *  then
                  *
@@ -330,6 +338,8 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
             }
         }
 
+        // searching for lines, contains home point
+        // if found, connect appropriate vertices by 0-capacity edges to and from home
         if (segments[i].contains(home1) && segments[i].contains_in_rectangle(home1)) {
             g[2*n].emplace_back(edge(i, 0));
             g[i].emplace_back(edge(2*n, 0));
@@ -379,11 +389,14 @@ double count_angle(const graph& g, const vector<int>& parents) {
     int parent = parents[u];
     double angle = 0;
 
+    // last edge is ignores (its' capacity is 0 anyway)
     while (parent != parents.size() - 2) {
+        // detects if there is no way home2 -> home1
         if (parent == -1) {
             return -1;
         }
 
+        //finds appropriate edge and sum its capacity
         for (auto&& e : g[parent]) {
             if (e.to==u) {
                 angle += e.c;
@@ -416,9 +429,7 @@ int main() {
 
     vector<int> parents = dijkstra(g, static_cast<int>(g.size()-2));
 
-    double angle = count_angle(g, parents);
-
-    output_answer("output.txt", angle);
+    output_answer("output.txt", count_angle(g, parents));
 
     return 0;
 }
