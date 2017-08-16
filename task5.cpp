@@ -383,7 +383,6 @@ vector<int> dijkstra(const graph& g, const int& s) {
 }
 
 double count_angle(const graph& g, const vector<int>& parents) {
-
     int u = static_cast<int>(parents.size() - 1);
     int parent = parents[u];
     double angle = 0;
