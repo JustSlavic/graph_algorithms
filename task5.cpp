@@ -29,10 +29,6 @@ double square_of_distance(const point& lhs, const point& rhs) {
     return (lhs.x - rhs.x)*(lhs.x - rhs.x) + (lhs.y - rhs.y)*(lhs.y - rhs.y);
 }
 
-double distance(const point& lhs, const point& rhs) {
-    return sqrt(square_of_distance(lhs, rhs));
-}
-
 struct line {
     point p1, p2;
 
