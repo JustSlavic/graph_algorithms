@@ -253,7 +253,7 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
 
                     double tmp_cos = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
 
-                    if (fabs(tmp_cos - 1) < eps)
+                    if (tmp_cos > 1 && fabs(tmp_cos - 1) < eps)
                         tmp_cos = 1;
 
                     const double angle = acos(tmp_cos)*180 / pi;
@@ -280,7 +280,7 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
 
                     double tmp_cos = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
 
-                    if (fabs(tmp_cos - 1) < eps)
+                    if (tmp_cos > 1 && fabs(tmp_cos - 1) < eps)
                         tmp_cos = 1;
 
                     const double angle = acos(tmp_cos)*180 / pi;
@@ -307,7 +307,7 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
 
                     double tmp_cos = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
 
-                    if (fabs(tmp_cos - 1) < eps)
+                    if (tmp_cos > 1 && fabs(tmp_cos - 1) < eps)
                         tmp_cos = 1;
 
                     const double angle = acos(tmp_cos)*180 / pi;
@@ -334,7 +334,7 @@ graph build_graph(vector<line> lines, const point& home1, const point& home2) {
 
                     double tmp_cos = (vx1*vx2 + vy1*vy2) / (sqrt(vx1*vx1 + vy1*vy1) * sqrt(vx2*vx2 + vy2*vy2));
 
-                    if (fabs(tmp_cos - 1) < eps)
+                    if (tmp_cos > 1 && fabs(tmp_cos - 1) < eps)
                         tmp_cos = 1;
 
                     const double angle = acos(tmp_cos)*180 / pi;
@@ -404,6 +404,10 @@ double count_angle(const graph& g, const vector<int>& parents) {
     double angle = 0;
 
     while (parent != parents.size() - 2) {
+        if (parent == -1) {
+            return -1;
+        }
+
         for (auto&& e : g[parent]) {
             if (e.to==u) {
                 angle += e.c;
