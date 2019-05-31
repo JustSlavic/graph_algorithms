@@ -9,6 +9,4 @@
 5. [Опасные повороты](https://github.com/JustSlavic/algorithms_on_graphs/tree/task5): поиск пути, алгоритм Дейкстры;
 6. [Микросхема](https://github.com/JustSlavic/algorithms_on_graphs/tree/task6): поиск максимального потока.
 
-Лектор: Штейнберг Роман Борисович.
-
 Весна 2017, ЮФУ.
