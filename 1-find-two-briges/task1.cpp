@@ -136,12 +136,16 @@ void output_result(const string& filename, const vector<edge>& bridges) {
 }
 
 int main(int argc, char** argv) {
+    if (argc < 3) { 
+        std::cerr << "usage: ./a.out INPUT OUTPUT" << std::endl;
+        std::exit(1);
+    }
 
-    auto g = parse_graph("input.txt");
+    auto g = parse_graph(std::string(argv[1]));
 
     auto bridges = solve_problem(g);
 
-    output_result("output.txt", bridges);
+    output_result(std::string(argv[2]), bridges);
 
     return 0;
 }
