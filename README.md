@@ -2,11 +2,12 @@
 
 ### Задачи:
 
-1. [Стратегические переходы](https://github.com/JustSlavic/algorithms_on_graphs/tree/task1): поиск мостов в графе;
-2. [Синхронные герои](https://github.com/JustSlavic/algorithms_on_graphs/tree/task2): поиск кратчайшего пути в графе;
-3. [Прыгающая лягушка](https://github.com/JustSlavic/algorithms_on_graphs/tree/task3): топологическая сортировка;
-4. [Игра в слова](https://github.com/JustSlavic/algorithms_on_graphs/tree/task4): поиск минимального остовного дерева;
-5. [Опасные повороты](https://github.com/JustSlavic/algorithms_on_graphs/tree/task5): поиск пути, алгоритм Дейкстры;
-6. [Микросхема](https://github.com/JustSlavic/algorithms_on_graphs/tree/task6): поиск максимального потока.
+1. [Стратегические переходы](https://github.com/JustSlavic/graph_algorithms/tree/master/1-find-two-briges): поиск мостов в графе;
+2. [Синхронные герои](https://github.com/JustSlavic/algorithms_on_graphs/tree/master/2-double-labyrinth): поиск кратчайшего пути в графе;
+3. [Прыгающая лягушка](https://github.com/JustSlavic/algorithms_on_graphs/tree/master/3-topological-sort): топологическая сортировка;
+4. [Игра в слова](https://github.com/JustSlavic/algorithms_on_graphs/tree/master/4-minimum-spanning-tree
+): поиск минимального остовного дерева;
+5. [Опасные повороты](https://github.com/JustSlavic/algorithms_on_graphs/tree/master/5-dijkstra): поиск пути, алгоритм Дейкстры;
+6. [Микросхема](https://github.com/JustSlavic/algorithms_on_graphs/tree/master/6-edmonds-karp): поиск максимального потока.
 
 Весна 2017, ЮФУ.
