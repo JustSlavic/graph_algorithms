@@ -1,32 +1,28 @@
-//
-// Created by radko on 7/2/17.
-//
-
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <list>
 #include <tuple>
 
-using namespace std;
 
 struct vertex_info {
     size_t number;
     size_t leave_time;
     bool used;
 };
-using graph_info = vector<struct vertex_info>;
+
+using graph_info = std::vector<struct vertex_info>;
 
 using vertex = size_t;
-using graph = vector<vector<double>>;
+using graph = std::vector<std::vector<double>>;
 
-graph parse_graph(const string& filename) {
-    ifstream ifs(filename);
+graph parse_graph(const std::string& filename) {
+    std::ifstream ifs(filename);
 
     size_t n;
     ifs >> n;
 
-    graph g(n, vector<double>(n));
+    graph g(n, std::vector<double>(n));
 
     for (size_t i = 0; i < n; ++i) {
         for (size_t j = 0; j < n; ++j) {
@@ -34,12 +30,10 @@ graph parse_graph(const string& filename) {
         }
     }
 
-    ifs.close();
-
     return g;
 }
 
-void topological_sort(const vertex& u, const graph& g, graph_info& info, list<vertex>& sorted) {
+void topological_sort(const vertex& u, const graph& g, graph_info& info, std::list<vertex>& sorted) {
     static size_t timer = 0;
     info[u].used = true;
     for (size_t neighbour = 0; neighbour < g.size(); ++neighbour) {
@@ -51,16 +45,16 @@ void topological_sort(const vertex& u, const graph& g, graph_info& info, list<ve
     info[u].leave_time = timer++;
 }
 
-vector<vertex> run_topological_sort(const graph& g) {
+std::vector<vertex> run_topological_sort(const graph& g) {
     graph_info info(g.size());
 
-    list<vertex> sorted_list;
+    std::list<vertex> sorted_list;
 
     info[0] = {0,0,true};
 
     topological_sort(0, g, info, sorted_list);
 
-    vector<vertex> sorted_vector;
+    std::vector<vertex> sorted_vector;
     sorted_vector.reserve(sorted_list.size());
 
     for (auto&& v : sorted_list) {
@@ -70,8 +64,8 @@ vector<vertex> run_topological_sort(const graph& g) {
     return sorted_vector;
 }
 
-pair<vector<vertex>, double> find_chance(graph g, const vector<vertex>& sorted) {
-    vector<vertex> parents(g.size());
+std::pair<std::vector<vertex>, double> find_chance(graph g, const std::vector<vertex>& sorted) {
+    std::vector<vertex> parents(g.size());
 
     for (size_t k = 1; k < sorted.size(); ++k) {
         for (size_t j = k+1; j < sorted.size(); ++j) {
@@ -82,21 +76,28 @@ pair<vector<vertex>, double> find_chance(graph g, const vector<vertex>& sorted) 
         }
     }
 
-    return make_pair(parents, g[0][g.size()-1]);
+    return std::make_pair(parents, g[0][g.size()-1]);
 }
 
-int main() {
+int main(int argc, char** argv) {
+    if (argc < 3) {
+        std::cerr << "usage: ./a.out INPUT OUTPUT" << std::endl;
+        return 1;
+    }
 
-    graph g = parse_graph("input.txt");
+    std::string input{argv[1]};
+    std::string output{argv[2]};
 
-    vector<vertex> sorted = run_topological_sort(g);
+    graph g = parse_graph(input);
+
+    std::vector<vertex> sorted = run_topological_sort(g);
 
     double chance;
-    vector<vertex> parents;
+    std::vector<vertex> parents;
 
-    tie(parents, chance) = find_chance(g, sorted);
+    std::tie(parents, chance) = find_chance(g, sorted);
 
-    vector<vertex> back_path;
+    std::vector<vertex> back_path;
     vertex stone = parents.size()-1;
 
     while (stone) {
@@ -105,15 +106,13 @@ int main() {
     }
     back_path.emplace_back(0);
 
-    ofstream ofs("output.txt");
+    std::ofstream ofs(output);
 
-    ofs << chance << " " << back_path.size() << endl;
+    ofs << chance << " " << back_path.size() << std::endl;
 
     for (auto it = back_path.rbegin(); it != back_path.rend(); ++it) {
         ofs << *it << " ";
     }
-
-    ofs.close();
 
     return 0;
 }
